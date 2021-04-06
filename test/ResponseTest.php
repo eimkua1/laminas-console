@@ -11,17 +11,18 @@ namespace LaminasTest\Console;
 use Laminas\Console\Response;
 use PHPUnit\Framework\TestCase;
 
+use function ob_get_clean;
+use function ob_start;
+
 /**
  * @group      Laminas_Console
  */
 class ResponseTest extends TestCase
 {
-    /**
-     * @var Response
-     */
+    /** @var Response */
     protected $response;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->response = new Response();
     }

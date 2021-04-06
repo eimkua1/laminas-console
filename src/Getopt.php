@@ -8,6 +8,39 @@
 
 namespace Laminas\Console;
 
+use Closure;
+use DOMDocument;
+use Laminas\Json\Json;
+
+use function array_filter;
+use function array_key_exists;
+use function array_keys;
+use function array_merge;
+use function array_push;
+use function array_shift;
+use function array_slice;
+use function array_unshift;
+use function count;
+use function explode;
+use function implode;
+use function in_array;
+use function ini_get;
+use function is_array;
+use function is_string;
+use function ltrim;
+use function preg_match;
+use function preg_match_all;
+use function sprintf;
+use function str_pad;
+use function str_split;
+use function strlen;
+use function strpos;
+use function strtolower;
+use function substr;
+use function substr_count;
+use function ucfirst;
+use function utf8_encode;
+
 /**
  * Getopt is a class to parse options for command-line
  * applications.
@@ -74,21 +107,21 @@ class Getopt
      * modeLaminas is for a more structured format.
      */
     /** @deprecated Use MODE_LAMINAS instead */
-    const MODE_ZEND    = 'laminas';
-    const MODE_LAMINAS = 'laminas';
+    public const MODE_ZEND    = 'laminas';
+    public const MODE_LAMINAS = 'laminas';
 
-    const MODE_GNU                          = 'gnu';
+    public const MODE_GNU = 'gnu';
 
     /**
      * Constant tokens for various symbols used in the mode_laminas
      * rule format.
      */
-    const PARAM_REQUIRED                    = '=';
-    const PARAM_OPTIONAL                    = '-';
-    const TYPE_STRING                       = 's';
-    const TYPE_WORD                         = 'w';
-    const TYPE_INTEGER                      = 'i';
-    const TYPE_NUMERIC_FLAG                 = '#';
+    public const PARAM_REQUIRED    = '=';
+    public const PARAM_OPTIONAL    = '-';
+    public const TYPE_STRING       = 's';
+    public const TYPE_WORD         = 'w';
+    public const TYPE_INTEGER      = 'i';
+    public const TYPE_NUMERIC_FLAG = '#';
 
     /**
      * These are constants for optional behavior of this class.
@@ -98,17 +131,19 @@ class Getopt
      * parseAll is true if all options on the command line should be parsed, regardless of
      * whether an argument appears before them.
      */
-    const CONFIG_RULEMODE                   = 'ruleMode';
-    const CONFIG_DASHDASH                   = 'dashDash';
-    const CONFIG_IGNORECASE                 = 'ignoreCase';
-    const CONFIG_PARSEALL                   = 'parseAll';
-    const CONFIG_CUMULATIVE_PARAMETERS      = 'cumulativeParameters';
-    const CONFIG_CUMULATIVE_FLAGS           = 'cumulativeFlags';
-    const CONFIG_PARAMETER_SEPARATOR        = 'parameterSeparator';
-    const CONFIG_FREEFORM_FLAGS             = 'freeformFlags';
-    const CONFIG_NUMERIC_FLAGS              = 'numericFlags';
+    public const CONFIG_RULEMODE              = 'ruleMode';
+    public const CONFIG_DASHDASH              = 'dashDash';
+    public const CONFIG_IGNORECASE            = 'ignoreCase';
+    public const CONFIG_PARSEALL              = 'parseAll';
+    public const CONFIG_CUMULATIVE_PARAMETERS = 'cumulativeParameters';
+    public const CONFIG_CUMULATIVE_FLAGS      = 'cumulativeFlags';
+    public const CONFIG_PARAMETER_SEPARATOR   = 'parameterSeparator';
+    public const CONFIG_FREEFORM_FLAGS        = 'freeformFlags';
+    public const CONFIG_NUMERIC_FLAGS         = 'numericFlags';
 
     /**
+     * @var array
+     *
      * Defaults for getopt configuration are:
      * ruleMode is 'laminas' format,
      * dashDash (--) token is enabled,
@@ -120,15 +155,15 @@ class Getopt
      * freeform flags are disable.
      */
     protected $getoptConfig = [
-        self::CONFIG_RULEMODE                => self::MODE_LAMINAS,
-        self::CONFIG_DASHDASH                => true,
-        self::CONFIG_IGNORECASE              => false,
-        self::CONFIG_PARSEALL                => true,
-        self::CONFIG_CUMULATIVE_PARAMETERS   => false,
-        self::CONFIG_CUMULATIVE_FLAGS        => false,
-        self::CONFIG_PARAMETER_SEPARATOR     => null,
-        self::CONFIG_FREEFORM_FLAGS          => false,
-        self::CONFIG_NUMERIC_FLAGS           => false
+        self::CONFIG_RULEMODE              => self::MODE_LAMINAS,
+        self::CONFIG_DASHDASH              => true,
+        self::CONFIG_IGNORECASE            => false,
+        self::CONFIG_PARSEALL              => true,
+        self::CONFIG_CUMULATIVE_PARAMETERS => false,
+        self::CONFIG_CUMULATIVE_FLAGS      => false,
+        self::CONFIG_PARAMETER_SEPARATOR   => null,
+        self::CONFIG_FREEFORM_FLAGS        => false,
+        self::CONFIG_NUMERIC_FLAGS         => false,
     ];
 
     /**
@@ -208,7 +243,7 @@ class Getopt
     public function __construct($rules, $argv = null, $getoptConfig = [])
     {
         if (! isset($_SERVER['argv'])) {
-            $errorDescription = (ini_get('register_argc_argv') == false)
+            $errorDescription = ini_get('register_argc_argv') === false
                 ? "argv is not available, because ini option 'register_argc_argv' is set Off"
                 : '$_SERVER["argv"] is not set, but Laminas\Console\Getopt cannot work without this information.';
             throw new Exception\InvalidArgumentException($errorDescription);
@@ -268,7 +303,7 @@ class Getopt
     {
         $this->parse();
         if (isset($this->ruleMap[$key])) {
-            $key = $this->ruleMap[$key];
+            $key                 = $this->ruleMap[$key];
             $this->options[$key] = $value;
         }
     }
@@ -302,7 +337,7 @@ class Getopt
      * These are appended to those defined when the constructor was called.
      *
      * @param  array $argv
-     * @throws Exception\InvalidArgumentException When not given an array as parameter
+     * @throws Exception\InvalidArgumentException
      * @return self
      */
     public function addArguments($argv)
@@ -310,7 +345,7 @@ class Getopt
         if (! is_array($argv)) {
             throw new Exception\InvalidArgumentException("Parameter #1 to addArguments should be an array");
         }
-        $this->argv = array_merge($this->argv, $argv);
+        $this->argv   = array_merge($this->argv, $argv);
         $this->parsed = false;
         return $this;
     }
@@ -320,7 +355,7 @@ class Getopt
      * These replace any currently defined.
      *
      * @param  array $argv
-     * @throws Exception\InvalidArgumentException When not given an array as parameter
+     * @throws Exception\InvalidArgumentException When not given an array as parameter.
      * @return self
      */
     public function setArguments($argv)
@@ -328,7 +363,7 @@ class Getopt
         if (! is_array($argv)) {
             throw new Exception\InvalidArgumentException("Parameter #1 to setArguments should be an array");
         }
-        $this->argv = $argv;
+        $this->argv   = $argv;
         $this->parsed = false;
         return $this;
     }
@@ -450,14 +485,13 @@ class Getopt
         foreach ($this->options as $flag => $value) {
             $j['options'][] = [
                 'option' => [
-                    'flag' => $flag,
-                    'parameter' => $value
-                ]
+                    'flag'      => $flag,
+                    'parameter' => $value,
+                ],
             ];
         }
 
-        $json = \Laminas\Json\Json::encode($j);
-        return $json;
+        return Json::encode($j);
     }
 
     /**
@@ -468,7 +502,7 @@ class Getopt
     public function toXml()
     {
         $this->parse();
-        $doc = new \DomDocument('1.0', 'utf-8');
+        $doc         = new DOMDocument('1.0', 'utf-8');
         $optionsNode = $doc->createElement('options');
         $doc->appendChild($optionsNode);
         foreach ($this->options as $flag => $value) {
@@ -479,8 +513,7 @@ class Getopt
             }
             $optionsNode->appendChild($optionNode);
         }
-        $xml = $doc->saveXML();
-        return $xml;
+        return $doc->saveXML();
     }
 
     /**
@@ -516,7 +549,7 @@ class Getopt
                 return $this->options[$flag];
             }
         }
-        return;
+        return null;
     }
 
     /**
@@ -530,7 +563,7 @@ class Getopt
         return $this->remainingArgs;
     }
 
-    public function getArguments()
+    public function getArguments(): array
     {
         $result = $this->getRemainingArgs();
         foreach ($this->getOptions() as $option) {
@@ -550,9 +583,9 @@ class Getopt
      */
     public function getUsageMessage()
     {
-        $usage = "Usage: {$this->progname} [ options ]\n";
+        $usage  = "Usage: {$this->progname} [ options ]\n";
         $maxLen = 20;
-        $lines = [];
+        $lines  = [];
         foreach ($this->rules as $rule) {
             if (isset($rule['isFreeformFlag'])) {
                 continue;
@@ -560,11 +593,11 @@ class Getopt
             $flags = [];
             if (is_array($rule['alias'])) {
                 foreach ($rule['alias'] as $flag) {
-                    $flags[] = (strlen($flag) == 1 ? '-' : '--') . $flag;
+                    $flags[] = (strlen($flag) === 1 ? '-' : '--') . $flag;
                 }
             }
             $linepart['name'] = implode('|', $flags);
-            if (isset($rule['param']) && $rule['param'] != 'none') {
+            if (isset($rule['param']) && $rule['param'] !== 'none') {
                 $linepart['name'] .= ' ';
                 switch ($rule['param']) {
                     case 'optional':
@@ -608,7 +641,7 @@ class Getopt
     {
         foreach ($aliasMap as $flag => $alias) {
             if ($this->getoptConfig[self::CONFIG_IGNORECASE]) {
-                $flag = strtolower($flag);
+                $flag  = strtolower($flag);
                 $alias = strtolower($alias);
             }
             if (! isset($this->ruleMap[$flag])) {
@@ -616,11 +649,11 @@ class Getopt
             }
             $flag = $this->ruleMap[$flag];
             if (isset($this->rules[$alias]) || isset($this->ruleMap[$alias])) {
-                $o = (strlen($alias) == 1 ? '-' : '--') . $alias;
+                $o = (strlen($alias) === 1 ? '-' : '--') . $alias;
                 throw new Exception\InvalidArgumentException("Option \"$o\" is being defined more than once.");
             }
             $this->rules[$flag]['alias'][] = $alias;
-            $this->ruleMap[$alias] = $flag;
+            $this->ruleMap[$alias]         = $flag;
         }
         return $this;
     }
@@ -640,7 +673,7 @@ class Getopt
             if (! isset($this->ruleMap[$flag])) {
                 continue;
             }
-            $flag = $this->ruleMap[$flag];
+            $flag                       = $this->ruleMap[$flag];
             $this->rules[$flag]['help'] = $help;
         }
         return $this;
@@ -661,11 +694,11 @@ class Getopt
             return $this;
         }
 
-        $argv = $this->argv;
-        $this->options = [];
+        $argv                = $this->argv;
+        $this->options       = [];
         $this->remainingArgs = [];
         while (count($argv) > 0) {
-            if ($argv[0] == '--') {
+            if ($argv[0] === '--') {
                 array_shift($argv);
                 if ($this->getoptConfig[self::CONFIG_DASHDASH]) {
                     $this->remainingArgs = array_merge($this->remainingArgs, $argv);
@@ -674,7 +707,7 @@ class Getopt
             }
             if (0 === strpos($argv[0], '--')) {
                 $this->_parseLongOption($argv);
-            } elseif (0 === strpos($argv[0], '-') && ('-' != $argv[0] || count($argv) > 1)) {
+            } elseif (0 === strpos($argv[0], '-') && ('-' !== $argv[0] || count($argv) > 1)) {
                 $this->_parseShortOptionCluster($argv);
             } elseif ($this->getoptConfig[self::CONFIG_PARSEALL]) {
                 $this->remainingArgs[] = array_shift($argv);
@@ -703,10 +736,9 @@ class Getopt
      *                           parameter will be a reference to $this object. If the callback returns
      *                           false then an Exception\RuntimeException will be thrown indicating that
      *                           there is a parse issue with this option.
-     *
      * @return self
      */
-    public function setOptionCallback($option, \Closure $callback)
+    public function setOptionCallback($option, Closure $callback)
     {
         $this->optionCallbacks[$option] = $callback;
 
@@ -746,9 +778,9 @@ class Getopt
     {
         // @codingStandardsIgnoreEnd
         $optionWithParam = ltrim(array_shift($argv), '-');
-        $l = explode('=', $optionWithParam, 2);
-        $flag = array_shift($l);
-        $param = array_shift($l);
+        $l               = explode('=', $optionWithParam, 2);
+        $flag            = array_shift($l);
+        $param           = array_shift($l);
         if (isset($param)) {
             array_unshift($argv, $param);
         }
@@ -802,11 +834,11 @@ class Getopt
             }
 
             // Magic methods in future will use this mark as real flag value
-            $this->ruleMap[$flag] = $flag;
-            $realFlag = $flag;
+            $this->ruleMap[$flag]   = $flag;
+            $realFlag               = $flag;
             $this->rules[$realFlag] = [
                 'param'          => 'optional',
-                'isFreeformFlag' => true
+                'isFreeformFlag' => true,
             ];
         } else {
             $realFlag = $this->ruleMap[$flag];
@@ -975,19 +1007,19 @@ class Getopt
          */
         preg_match_all('/([a-zA-Z0-9]:?)/', $rules, $ruleArray);
         foreach ($ruleArray[1] as $rule) {
-            $r = [];
+            $r    = [];
             $flag = substr($rule, 0, 1);
             if ($this->getoptConfig[self::CONFIG_IGNORECASE]) {
                 $flag = strtolower($flag);
             }
             $r['alias'][] = $flag;
             if (1 === strpos($rule, ':', 1)) {
-                $r['param'] = 'required';
+                $r['param']     = 'required';
                 $r['paramType'] = 'string';
             } else {
                 $r['param'] = 'none';
             }
-            $this->rules[$flag] = $r;
+            $this->rules[$flag]   = $r;
             $this->ruleMap[$flag] = $flag;
         }
     }
@@ -1011,27 +1043,27 @@ class Getopt
                 $delimiter = substr($ruleCode, -2, 1);
                 $paramType = substr($ruleCode, -1);
             } else {
-                $flagList = $ruleCode;
+                $flagList  = $ruleCode;
                 $delimiter = $paramType = null;
             }
             if ($this->getoptConfig[self::CONFIG_IGNORECASE]) {
                 $flagList = strtolower($flagList);
             }
-            $flags = explode('|', $flagList);
-            $rule = [];
+            $flags    = explode('|', $flagList);
+            $rule     = [];
             $mainFlag = $flags[0];
             foreach ($flags as $flag) {
                 if (empty($flag)) {
                     throw new Exception\InvalidArgumentException("Blank flag not allowed in rule \"$ruleCode\".");
                 }
-                if (strlen($flag) == 1) {
+                if (strlen($flag) === 1) {
                     if (isset($this->ruleMap[$flag])) {
                         throw new Exception\InvalidArgumentException(
                             "Option \"-$flag\" is being defined more than once."
                         );
                     }
                     $this->ruleMap[$flag] = $mainFlag;
-                    $rule['alias'][] = $flag;
+                    $rule['alias'][]      = $flag;
                 } else {
                     if (isset($this->rules[$flag]) || isset($this->ruleMap[$flag])) {
                         throw new Exception\InvalidArgumentException(
@@ -1039,7 +1071,7 @@ class Getopt
                         );
                     }
                     $this->ruleMap[$flag] = $mainFlag;
-                    $rule['alias'][] = $flag;
+                    $rule['alias'][]      = $flag;
                 }
             }
             if (isset($delimiter)) {
@@ -1059,7 +1091,7 @@ class Getopt
                         $rule['paramType'] = 'integer';
                         break;
                     case self::TYPE_NUMERIC_FLAG:
-                        $rule['paramType'] = 'numericFlag';
+                        $rule['paramType']                        = 'numericFlag';
                         $this->getoptConfig['numericFlagsOption'] = $mainFlag;
                         break;
                     case self::TYPE_STRING:
@@ -1069,7 +1101,7 @@ class Getopt
             } else {
                 $rule['param'] = 'none';
             }
-            $rule['help'] = $helpMessage;
+            $rule['help']           = $helpMessage;
             $this->rules[$mainFlag] = $rule;
         }
     }

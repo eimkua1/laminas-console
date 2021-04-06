@@ -11,14 +11,17 @@ namespace LaminasTest\Console;
 use Laminas\Console\Request;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+use function ini_get;
+
 /**
  * @group      Laminas_Console
  */
 class RequestTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
-        if (ini_get('register_argc_argv') == false) {
+        if (ini_get('register_argc_argv') === false) {
             $this->markTestSkipped(
                 "Cannot Test Laminas\\Console\\Getopt without 'register_argc_argv' ini option true."
             );
@@ -31,7 +34,7 @@ class RequestTest extends TestCase
         $_ENV["FOO_VAR"] = "bar";
 
         $request = new Request();
-        $params = $request->getParams();
+        $params  = $request->getParams();
 
         $this->assertCount(2, $params);
         $this->assertEquals($params->toArray(), ['foo' => 'baz', 'bar']);

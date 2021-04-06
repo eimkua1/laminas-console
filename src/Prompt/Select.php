@@ -9,22 +9,22 @@
 namespace Laminas\Console\Prompt;
 
 use Laminas\Console\Exception;
+use Traversable;
+
+use function array_keys;
+use function count;
+use function implode;
+use function is_array;
 
 class Select extends Char
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $promptText = 'Please select an option';
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $ignoreCase = true;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $options = [];
 
     /**
@@ -34,7 +34,7 @@ class Select extends Char
      * @param array     $options        Allowed options
      * @param bool      $allowEmpty     Allow empty (no) selection?
      * @param bool      $echo           True to display selected option?
-     * @throws Exception\BadMethodCallException if no options available
+     * @throws Exception\BadMethodCallException If no options available.
      */
     public function __construct(
         $promptText = 'Please select one option',
@@ -113,12 +113,12 @@ class Select extends Char
     /**
      * Set allowed options
      *
-     * @param array|\Traversable $options
+     * @param array|Traversable $options
      * @throws Exception\BadMethodCallException
      */
     public function setOptions($options)
     {
-        if (! is_array($options) && ! $options instanceof \Traversable) {
+        if (! is_array($options) && ! $options instanceof Traversable) {
             throw new Exception\BadMethodCallException(
                 'Please specify an array or Traversable object as options'
             );

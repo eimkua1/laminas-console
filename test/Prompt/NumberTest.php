@@ -12,23 +12,30 @@ use Laminas\Console\Prompt\Number;
 use LaminasTest\Console\TestAssets\ConsoleAdapter;
 use PHPUnit\Framework\TestCase;
 
+use function fclose;
+use function fopen;
+use function fwrite;
+use function ob_get_clean;
+use function ob_start;
+use function rewind;
+
+use const PHP_EOL;
+
 /**
  * @group      Laminas_Console
  */
 class NumberTest extends TestCase
 {
-    /**
-     * @var ConsoleAdapter
-     */
+    /** @var ConsoleAdapter */
     protected $adapter;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->adapter = new ConsoleAdapter();
+        $this->adapter         = new ConsoleAdapter();
         $this->adapter->stream = fopen('php://memory', 'w+');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         fclose($this->adapter->stream);
     }
@@ -41,7 +48,7 @@ class NumberTest extends TestCase
         $number->setConsole($this->adapter);
         ob_start();
         $response = $number->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals($text, "Please enter a number: ");
         $this->assertEquals('123', $response);
     }
@@ -57,8 +64,8 @@ class NumberTest extends TestCase
         $number->setConsole($this->adapter);
         ob_start();
         $response = $number->show();
-        $text = ob_get_clean();
-        $this->assertContains('a is not a number', $text);
+        $text     = ob_get_clean();
+        $this->assertStringContainsString('a is not a number', $text);
         $this->assertEquals('123', $response);
     }
 
@@ -73,8 +80,9 @@ class NumberTest extends TestCase
         $number->setConsole($this->adapter);
         ob_start();
         $response = $number->show();
-        $text = ob_get_clean();
-        $this->assertContains('Please enter a non-floating number', $text);
+        $text     = ob_get_clean();
+
+        $this->assertStringContainsString('Please enter a non-floating number', $text);
         $this->assertEquals('123', $response);
     }
 
@@ -89,7 +97,7 @@ class NumberTest extends TestCase
         $number->setConsole($this->adapter);
         ob_start();
         $response = $number->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals($text, 'Give me a number');
         $this->assertEquals('1.23', $response);
     }
@@ -106,10 +114,10 @@ class NumberTest extends TestCase
         $number->setConsole($this->adapter);
         ob_start();
         $response = $number->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
 
-        $this->assertContains('Please enter a number not smaller than 5', $text);
-        $this->assertContains('Please enter a number not greater than 10', $text);
+        $this->assertStringContainsString('Please enter a number not smaller than 5', $text);
+        $this->assertStringContainsString('Please enter a number not greater than 10', $text);
         $this->assertEquals('6', $response);
     }
 }

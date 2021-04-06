@@ -10,19 +10,32 @@ namespace LaminasTest\Console\TestAssets;
 
 use Laminas\Console\Adapter\AbstractAdapter;
 
+use function fread;
+use function rewind;
+use function rtrim;
+use function stream_get_line;
+use function strstr;
+
+use const PHP_EOL;
+
 /**
  * @group      Laminas_Console
  */
 class ConsoleAdapter extends AbstractAdapter
 {
+    /** @var resource */
     public $stream;
 
+    /** @var bool */
     public $autoRewind = true;
 
+    /** @var int */
     public $testWidth = 80;
 
+    /** @var bool */
     public $testIsUtf8 = true;
 
+    /** @var array */
     public $writtenData = [];
 
     /**
@@ -71,9 +84,8 @@ class ConsoleAdapter extends AbstractAdapter
      * Force reported width for testing purposes.
      *
      * @param int $width
-     * @return int
      */
-    public function setTestWidth($width)
+    public function setTestWidth($width): void
     {
         $this->testWidth = $width;
     }
@@ -83,23 +95,24 @@ class ConsoleAdapter extends AbstractAdapter
      *
      * @param bool $isUtf8
      */
-    public function setTestUtf8($isUtf8)
+    public function setTestUtf8($isUtf8): void
     {
         $this->testIsUtf8 = $isUtf8;
     }
 
-    public function isUtf8()
+    public function isUtf8(): bool
     {
         return $this->testIsUtf8;
     }
 
-    public function getWidth()
+    public function getWidth(): int
     {
         return $this->testWidth;
     }
 
     /**
      * Tracks exactly what data has been written
+     *
      * @param string $text
      * @param null $color
      * @param null $bgColor

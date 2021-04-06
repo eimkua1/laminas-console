@@ -8,26 +8,36 @@
 
 namespace LaminasTest\Console\Adapter;
 
+use Laminas\Console\Exception\InvalidArgumentException;
 use LaminasTest\Console\TestAssets\ConsoleAdapter;
 use PHPUnit\Framework\TestCase;
+
+use function fclose;
+use function fopen;
+use function fwrite;
+use function ob_get_clean;
+use function ob_start;
+use function str_repeat;
+use function strlen;
+use function utf8_decode;
+
+use const PHP_EOL;
 
 /**
  * @group      Laminas_Console
  */
 class AbstractAdapterTest extends TestCase
 {
-    /**
-     * @var ConsoleAdapter
-     */
+    /** @var ConsoleAdapter */
     protected $adapter;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->adapter = new ConsoleAdapter();
+        $this->adapter         = new ConsoleAdapter();
         $this->adapter->stream = fopen('php://memory', 'w+');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         fclose($this->adapter->stream);
     }
@@ -62,8 +72,9 @@ class AbstractAdapterTest extends TestCase
     }
 
     /**
-     * @issue Laminas-4051
      * @link https://github.com/zendframework/zf2/issues/4051
+     *
+     * @issue Laminas-4051
      */
     public function testWriteLineOverflowAndWidthMatch()
     {
@@ -148,7 +159,7 @@ class AbstractAdapterTest extends TestCase
     public function testWriteTextBlockSameAsWidth()
     {
         //set some text that's the same size as the width
-        $text = 'hello there, I am short!';
+        $text  = 'hello there, I am short!';
         $width = strlen($text);
 
         ob_start();
@@ -158,10 +169,18 @@ class AbstractAdapterTest extends TestCase
 
     public function testTextBlockLongUnbreakableWord()
     {
-        $text = 'thisisaverylongwordthatwontbreakproperlysothereyouhaveit and here is some more text';
-        $expected = ['thisisaver', 'ylongwordt', 'hatwontbre', 'akproperly'
-           , 'sothereyou', 'haveit and', 'here is', 'some more'
-           , 'text'];
+        $text     = 'thisisaverylongwordthatwontbreakproperlysothereyouhaveit and here is some more text';
+        $expected = [
+            'thisisaver',
+            'ylongwordt',
+            'hatwontbre',
+            'akproperly',
+            'sothereyou',
+            'haveit and',
+            'here is',
+            'some more',
+            'text',
+        ];
 
         ob_start();
         $this->adapter->writeTextBlock($text, 10);
@@ -170,9 +189,10 @@ class AbstractAdapterTest extends TestCase
         //just get rid of the data in ob
         ob_get_clean();
     }
+
     public function testTextBlockLongerThanHeight()
     {
-        $text = 'thisisaverylongwordthatwontbreakproperlysothereyouhaveit and here is some more text';
+        $text     = 'thisisaverylongwordthatwontbreakproperlysothereyouhaveit and here is some more text';
         $expected = ['thisisaver', 'ylongwordt', 'hatwontbre'];
 
         //reset tracking of written data
@@ -186,30 +206,27 @@ class AbstractAdapterTest extends TestCase
         ob_get_clean();
     }
 
-    /**
-     * @expectedException \Laminas\Console\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Supplied X,Y coordinates are invalid.
-     */
     public function testInvalidCoords()
     {
+        $this->expectExceptionMessage("Supplied X,Y coordinates are invalid.");
+        $this->expectException(InvalidArgumentException::class);
+
         $this->adapter->writeTextBlock('', 1, 1, -1, -9);
     }
 
-    /**
-     * @expectedException \Laminas\Console\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Invalid width supplied.
-     */
     public function testInvalidWidth()
     {
+        $this->expectExceptionMessage("Invalid width supplied.");
+        $this->expectException(InvalidArgumentException::class);
+
         $this->adapter->writeTextBlock('', 0);
     }
 
-    /**
-     * @expectedException \Laminas\Console\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Invalid height supplied.
-     */
     public function testInvalidHeight()
     {
+        $this->expectExceptionMessage("Invalid height supplied.");
+        $this->expectException(InvalidArgumentException::class);
+
         $this->adapter->writeTextBlock('', 80, 0, 2, 2);
     }
 }

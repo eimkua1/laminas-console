@@ -8,31 +8,23 @@
 
 namespace Laminas\Console\Prompt;
 
+use function strtolower;
+
 class Confirm extends Char
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $promptText = 'Are you sure?';
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $allowedChars = 'yn';
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $yesChar = 'y';
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $noChar = 'n';
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $ignoreCase = true;
 
     /**

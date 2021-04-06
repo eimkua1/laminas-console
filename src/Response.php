@@ -11,18 +11,20 @@ namespace Laminas\Console;
 use Laminas\Stdlib\Message;
 use Laminas\Stdlib\ResponseInterface;
 
+use function ctype_digit;
+use function is_string;
+
 class Response extends Message implements ResponseInterface
 {
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $contentSent = false;
 
     /**
      * Check if content was sent
      *
-     * @return bool
      * @deprecated
+     *
+     * @return bool
      */
     public function contentSent()
     {
@@ -58,8 +60,9 @@ class Response extends Message implements ResponseInterface
     /**
      * Send content
      *
-     * @return Response
      * @deprecated
+     *
+     * @return Response
      */
     public function sendContent()
     {

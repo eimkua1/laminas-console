@@ -14,9 +14,29 @@ use Laminas\Console\ColorInterface as Color;
 use Laminas\Console\Exception;
 use ReflectionClass;
 
+use function count;
+use function escapeshellarg;
+use function escapeshellcmd;
+use function exec;
+use function fclose;
+use function fgetc;
+use function fopen;
+use function getenv;
+use function implode;
+use function is_numeric;
+use function shell_exec;
+use function sprintf;
+use function stristr;
+use function strlen;
+use function strstr;
+use function trim;
+
+use const PHP_EOL;
+
 /**
- * @todo Add GNU readline support
  * @link http://en.wikipedia.org/wiki/ANSI_escape_code
+ *
+ * @todo Add GNU readline support
  */
 class Posix extends AbstractAdapter
 {
@@ -25,11 +45,9 @@ class Posix extends AbstractAdapter
      *
      * @var null|bool
      */
-    protected static $hasMBString;
+    protected static $hasMbString;
 
-    /**
-     * @var Charset\CharsetInterface
-     */
+    /** @var Charset\CharsetInterface */
     protected $charset;
 
     /**
@@ -41,7 +59,6 @@ class Posix extends AbstractAdapter
         'fg' => [
             Color::NORMAL        => '22;39',
             Color::RESET         => '22;39',
-
             Color::BLACK         => '0;30',
             Color::RED           => '0;31',
             Color::GREEN         => '0;32',
@@ -50,7 +67,6 @@ class Posix extends AbstractAdapter
             Color::MAGENTA       => '0;35',
             Color::CYAN          => '0;36',
             Color::WHITE         => '0;37',
-
             Color::GRAY          => '1;30',
             Color::LIGHT_RED     => '1;31',
             Color::LIGHT_GREEN   => '1;32',
@@ -63,7 +79,6 @@ class Posix extends AbstractAdapter
         'bg' => [
             Color::NORMAL        => '0;49',
             Color::RESET         => '0;49',
-
             Color::BLACK         => '40',
             Color::RED           => '41',
             Color::GREEN         => '42',
@@ -72,7 +87,6 @@ class Posix extends AbstractAdapter
             Color::MAGENTA       => '45',
             Color::CYAN          => '46',
             Color::WHITE         => '47',
-
             Color::GRAY          => '40',
             Color::LIGHT_RED     => '41',
             Color::LIGHT_GREEN   => '42',
@@ -89,7 +103,7 @@ class Posix extends AbstractAdapter
      *
      * @var string|null
      */
-    protected $lastTTYMode = null;
+    protected $lastTtyMode;
 
     /**
      * Write a single line of text to console and advance cursor to the next line.
@@ -99,6 +113,7 @@ class Posix extends AbstractAdapter
      * appropriate color reset sequences before sending EOL character.
      *
      * @link https://github.com/zendframework/zf2/issues/4167
+     *
      * @param string   $text
      * @param null|int $color
      * @param null|int $bgColor
@@ -213,6 +228,7 @@ class Posix extends AbstractAdapter
 
     /**
      * Set cursor position
+     *
      * @param int $x
      * @param int $y
      */
@@ -234,7 +250,7 @@ class Posix extends AbstractAdapter
     {
         $color   = $this->getColorCode($color, 'fg');
         $bgColor = $this->getColorCode($bgColor, 'bg');
-        return ($color !== null ? "\x1b[" . $color   . 'm' : '')
+        return ($color !== null ? "\x1b[" . $color . 'm' : '')
             . ($bgColor !== null ? "\x1b[" . $bgColor . 'm' : '')
             . $string
             . "\x1b[22;39m\x1b[0;49m";
@@ -261,7 +277,7 @@ class Posix extends AbstractAdapter
     public function setBgColor($bgColor)
     {
         $bgColor = $this->getColorCode($bgColor, 'bg');
-        echo "\x1b[" . ($bgColor) . 'm';
+        echo "\x1b[" . $bgColor . 'm';
     }
 
     /**
@@ -277,8 +293,6 @@ class Posix extends AbstractAdapter
 
     /**
      * Set Console charset to use.
-     *
-     * @param Charset\CharsetInterface $charset
      */
     public function setCharset(Charset\CharsetInterface $charset)
     {
@@ -305,7 +319,7 @@ class Posix extends AbstractAdapter
     public function getDefaultCharset()
     {
         if ($this->isUtf8()) {
-            return new Charset\Utf8;
+            return new Charset\Utf8();
         }
         return new Charset\DECSG();
     }
@@ -346,26 +360,27 @@ class Posix extends AbstractAdapter
      */
     protected function restoreTTYMode()
     {
-        if ($this->lastTTYMode === null) {
+        if ($this->lastTtyMode === null) {
             return;
         }
 
-        shell_exec('stty ' . escapeshellarg($this->lastTTYMode));
+        shell_exec('stty ' . escapeshellarg($this->lastTtyMode));
     }
 
     /**
      * Change TTY (Console) mode
      *
      * @link  http://en.wikipedia.org/wiki/Stty
+     *
      * @param string $mode
      */
     protected function setTTYMode($mode)
     {
         // Store last mode
-        $this->lastTTYMode = trim(`stty -g`);
+        $this->lastTtyMode = trim('stty -g');
 
         // Set new mode
-        shell_exec('stty '.escapeshellcmd($mode));
+        shell_exec('stty ' . escapeshellcmd($mode));
     }
 
     /**
@@ -374,14 +389,14 @@ class Posix extends AbstractAdapter
      * @param  null|int|Xterm256 $color
      * @param  string            $type  (optional) Foreground 'fg' or background 'bg'.
      * @throws Exception\BadMethodCallException
-     * @return string
+     * @return string|null
      */
     protected function getColorCode($color, $type = 'fg')
     {
         if ($color instanceof Xterm256) {
             $r    = new ReflectionClass($color);
             $code = $r->getStaticPropertyValue('color');
-            if ($type == 'fg') {
+            if ($type === 'fg') {
                 $code = sprintf($code, $color::FOREGROUND);
             } else {
                 $code = sprintf($code, $color::BACKGROUND);
@@ -401,6 +416,6 @@ class Posix extends AbstractAdapter
             return static::$ansiColorMap[$type][$color];
         }
 
-        return;
+        return null;
     }
 }

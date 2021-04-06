@@ -10,19 +10,13 @@ namespace Laminas\Console\Prompt;
 
 class Line extends AbstractPrompt
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $promptText = 'Please enter value: ';
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $allowEmpty = false;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     protected $maxLength = 2048;
 
     /**

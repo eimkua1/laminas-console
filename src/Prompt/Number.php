@@ -8,26 +8,24 @@
 
 namespace Laminas\Console\Prompt;
 
+use function filter_var;
+use function is_numeric;
+use function round;
+
+use const FILTER_VALIDATE_INT;
+
 class Number extends Line
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $promptText = 'Please enter a number: ';
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $allowFloat = false;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     protected $min;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     protected $max;
 
     /**
@@ -78,8 +76,9 @@ class Number extends Line
          * Ask for a number and validate it.
          */
         do {
-            $valid = true;
+            $valid  = true;
             $number = parent::show();
+
             if ($number === "" && ! $this->allowEmpty) {
                 $valid = false;
             } elseif ($number === "") {
@@ -87,7 +86,7 @@ class Number extends Line
             } elseif (! is_numeric($number)) {
                 $this->getConsole()->writeLine("$number is not a number\n");
                 $valid = false;
-            } elseif (! $this->allowFloat && (round($number) != $number)) {
+            } elseif (! $this->allowFloat && false === filter_var($number, FILTER_VALIDATE_INT)) {
                 $this->getConsole()->writeLine("Please enter a non-floating number, i.e. " . round($number) . "\n");
                 $valid = false;
             } elseif ($this->max !== null && $number > $this->max) {

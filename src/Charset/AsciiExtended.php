@@ -15,35 +15,35 @@ namespace Laminas\Console\Charset;
  */
 class AsciiExtended implements CharsetInterface
 {
-    const ACTIVATE          = "";
-    const DEACTIVATE        = "";
+    public const ACTIVATE   = "";
+    public const DEACTIVATE = "";
 
-    const BLOCK             = "\xdb";
-    const SHADE_LIGHT       = "\xb0";
-    const SHADE_MEDIUM      = "\xb1";
-    const SHADE_DARK        = "\xb2";
+    public const BLOCK        = "\xdb";
+    public const SHADE_LIGHT  = "\xb0";
+    public const SHADE_MEDIUM = "\xb1";
+    public const SHADE_DARK   = "\xb2";
 
-    const LINE_SINGLE_EW    = "\xc4";
-    const LINE_SINGLE_NS    = "\xb3";
-    const LINE_SINGLE_NW    = "\xda";
-    const LINE_SINGLE_NE    = "\xbf";
-    const LINE_SINGLE_SE    = "\xd9";
-    const LINE_SINGLE_SW    = "\xc0";
-    const LINE_SINGLE_CROSS = "\xc5";
+    public const LINE_SINGLE_EW    = "\xc4";
+    public const LINE_SINGLE_NS    = "\xb3";
+    public const LINE_SINGLE_NW    = "\xda";
+    public const LINE_SINGLE_NE    = "\xbf";
+    public const LINE_SINGLE_SE    = "\xd9";
+    public const LINE_SINGLE_SW    = "\xc0";
+    public const LINE_SINGLE_CROSS = "\xc5";
 
-    const LINE_DOUBLE_EW    = "\xcd";
-    const LINE_DOUBLE_NS    = "\xba";
-    const LINE_DOUBLE_NW    = "\xc9";
-    const LINE_DOUBLE_NE    = "\xbb";
-    const LINE_DOUBLE_SE    = "\xbc";
-    const LINE_DOUBLE_SW    = "\xc8";
-    const LINE_DOUBLE_CROSS = "\xce";
+    public const LINE_DOUBLE_EW    = "\xcd";
+    public const LINE_DOUBLE_NS    = "\xba";
+    public const LINE_DOUBLE_NW    = "\xc9";
+    public const LINE_DOUBLE_NE    = "\xbb";
+    public const LINE_DOUBLE_SE    = "\xbc";
+    public const LINE_DOUBLE_SW    = "\xc8";
+    public const LINE_DOUBLE_CROSS = "\xce";
 
-    const LINE_BLOCK_EW     = "\xdb";
-    const LINE_BLOCK_NS     = "\xdb";
-    const LINE_BLOCK_NW     = "\xdb";
-    const LINE_BLOCK_NE     = "\xdb";
-    const LINE_BLOCK_SE     = "\xdb";
-    const LINE_BLOCK_SW     = "\xdb";
-    const LINE_BLOCK_CROSS  = "\xdb";
+    public const LINE_BLOCK_EW    = "\xdb";
+    public const LINE_BLOCK_NS    = "\xdb";
+    public const LINE_BLOCK_NW    = "\xdb";
+    public const LINE_BLOCK_NE    = "\xdb";
+    public const LINE_BLOCK_SE    = "\xdb";
+    public const LINE_BLOCK_SW    = "\xdb";
+    public const LINE_BLOCK_CROSS = "\xdb";
 }

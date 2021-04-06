@@ -5,36 +5,44 @@
  * @copyright https://github.com/laminas/laminas-console/blob/master/COPYRIGHT.md
  * @license   https://github.com/laminas/laminas-console/blob/master/LICENSE.md New BSD License
  */
+
 namespace Laminas\Console\Prompt;
 
 use Laminas\Console\Exception;
 use Laminas\Stdlib\ArrayUtils;
+use Traversable;
+
+use function array_keys;
+use function array_search;
+use function array_splice;
+use function array_unique;
+use function implode;
+use function in_array;
+use function str_split;
+use function strtolower;
+use function strtoupper;
 
 final class Checkbox extends AbstractPrompt
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $promptText;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     private $ignoreCase;
 
-    /**
-     * @var array|Transversable
-     */
+    /** @var array */
     private $options;
 
     /**
      * Checked options
+     *
      * @var array
      */
     private $checkedOptions = [];
 
     /**
      * If the response should be echoed to the console or not
+     *
      * @var bool
      */
     private $echo;
@@ -43,7 +51,8 @@ final class Checkbox extends AbstractPrompt
      * Ask the user to select any number of pre-defined options
      *
      * @param string              $promptText The prompt text to display in console
-     * @param array|Transversable $options    Allowed options
+     * @param array $options    Allowed options
+     * @param bool $ignoreCase
      * @param bool                $echo       True to display selected option?
      */
     public function __construct(
@@ -69,7 +78,7 @@ final class Checkbox extends AbstractPrompt
     public function show()
     {
         $this->checkedOptions = [];
-        $mask = $this->prepareMask();
+        $mask                 = $this->prepareMask();
 
         do {
             $this->showAvailableOptions();
@@ -81,7 +90,7 @@ final class Checkbox extends AbstractPrompt
             }
 
             $this->checkOrUncheckOption($response);
-        } while ($response != "\r" && $response != "\n");
+        } while ($response !== "\r" && $response !== "\n");
 
         $this->lastResponse = $this->checkedOptions;
 
@@ -90,6 +99,7 @@ final class Checkbox extends AbstractPrompt
 
     /**
      * Shows the selected option to the screen
+     *
      * @param string $response
      */
     private function showResponse($response)
@@ -109,7 +119,7 @@ final class Checkbox extends AbstractPrompt
      */
     private function checkOrUncheckOption($response)
     {
-        if ($response != "\r" && $response != "\n" && isset($this->options[$response])) {
+        if ($response !== "\r" && $response !== "\n" && isset($this->options[$response])) {
             $pos = array_search($this->options[$response], $this->checkedOptions);
             if ($pos === false) {
                 $this->checkedOptions[] = $this->options[$response];
@@ -170,7 +180,7 @@ final class Checkbox extends AbstractPrompt
     /**
      * Set allowed options
      *
-     * @param  array|\Traversable                 $options
+     * @param array|Traversable $options
      * @throws Exception\InvalidArgumentException
      */
     private function setOptions($options)

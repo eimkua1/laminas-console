@@ -30,11 +30,11 @@ laminas-console provides a factory for creating and returning the console adapte
 specific to your environment:
 
 ```php
-use Laminas\Console\Console;
+use Laminas\Console\AbstractConsole;
 use Laminas\Console\Exception\ExceptionInterface as ConsoleException;
 
 try {
-    $console = Console::getInstance();
+    $console = AbstractConsole::getInstance();
 } catch (ConsoleException $e) {
     // Could not get console adapter; most likely we are not running inside a
     // console window.

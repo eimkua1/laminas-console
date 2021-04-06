@@ -15,11 +15,11 @@ namespace Laminas\Console\Charset;
  */
 class Utf8Heavy extends Utf8
 {
-    const LINE_SINGLE_EW = "━";
-    const LINE_SINGLE_NS = "┃";
-    const LINE_SINGLE_NW = "┏";
-    const LINE_SINGLE_NE = "┓";
-    const LINE_SINGLE_SE = "┛";
-    const LINE_SINGLE_SW = "┗";
-    const LINE_SINGLE_CROSS = "╋";
+    public const LINE_SINGLE_EW    = "━";
+    public const LINE_SINGLE_NS    = "┃";
+    public const LINE_SINGLE_NW    = "┏";
+    public const LINE_SINGLE_NE    = "┓";
+    public const LINE_SINGLE_SE    = "┛";
+    public const LINE_SINGLE_SW    = "┗";
+    public const LINE_SINGLE_CROSS = "╋";
 }

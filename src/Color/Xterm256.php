@@ -8,21 +8,30 @@
 
 namespace Laminas\Console\Color;
 
+use function array_fill;
+use function array_map;
+use function count;
+use function floor;
+use function hexdec;
+use function preg_match;
+use function round;
+use function sprintf;
+use function str_split;
+use function substr;
+
 class Xterm256
 {
     /**
      * Foreground constant
      */
-    const FOREGROUND = 38;
+    public const FOREGROUND = 38;
 
     /**
      * Background constant
      */
-    const BACKGROUND = 48;
+    public const BACKGROUND = 48;
 
-    /**
-     * @var string $color X11-formatted color value
-     */
+    /** @var string $color X11-formatted color value */
     public static $color;
 
     /**
@@ -50,7 +59,7 @@ class Xterm256
         }
 
         $ahex = array_map(function ($hex) {
-            $val = round(((hexdec($hex) - 55) / 40), 0);
+            $val = round((hexdec($hex) - 55) / 40, 0);
             return $val > 0 ? (int) $val : 0;
         }, $hex);
 

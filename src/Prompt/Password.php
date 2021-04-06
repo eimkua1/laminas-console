@@ -8,16 +8,17 @@
 
 namespace Laminas\Console\Prompt;
 
+use function str_repeat;
+use function strlen;
+
+use const PHP_EOL;
+
 final class Password extends AbstractPrompt
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $promptText;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     private $echo;
 
     /**
@@ -53,7 +54,7 @@ final class Password extends AbstractPrompt
 
             $console->clearLine();
 
-            if (PHP_EOL == $char) {
+            if (PHP_EOL === $char) {
                 break;
             }
 

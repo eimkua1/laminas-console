@@ -12,23 +12,27 @@ use Laminas\Console\Prompt\Char;
 use LaminasTest\Console\TestAssets\ConsoleAdapter;
 use PHPUnit\Framework\TestCase;
 
+use function fclose;
+use function fopen;
+use function fwrite;
+use function ob_get_clean;
+use function ob_start;
+
 /**
  * @group      Laminas_Console
  */
 class CharTest extends TestCase
 {
-    /**
-     * @var ConsoleAdapter
-     */
+    /** @var ConsoleAdapter */
     protected $adapter;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->adapter = new ConsoleAdapter();
+        $this->adapter         = new ConsoleAdapter();
         $this->adapter->stream = fopen('php://memory', 'w+');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         fclose($this->adapter->stream);
     }
@@ -42,7 +46,7 @@ class CharTest extends TestCase
         $char->setConsole($this->adapter);
         ob_start();
         $response = $char->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals("Please hit a key\n", $text);
         $this->assertEquals('a', $response);
     }
@@ -69,7 +73,7 @@ class CharTest extends TestCase
         $char->setConsole($this->adapter);
         ob_start();
         $response = $char->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals("Give a number\n", $text);
         $this->assertEquals('1', $response);
     }
@@ -114,7 +118,7 @@ class CharTest extends TestCase
 
         ob_start();
         $response = $char->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
 
         $this->assertEquals("Please hit a keya\n", $text);
         $this->assertEquals('a', $response);

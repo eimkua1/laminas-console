@@ -8,7 +8,11 @@
 
 namespace LaminasTest\Console;
 
-use Laminas\Console\Console;
+use Laminas\Console\AbstractConsole;
+use Laminas\Console\Adapter\AdapterInterface;
+use Laminas\Console\Adapter\Posix;
+use Laminas\Console\Adapter\Windows;
+use Laminas\Console\Exception\RuntimeException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -16,66 +20,66 @@ use PHPUnit\Framework\TestCase;
  */
 class ConsoleTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
-        Console::overrideIsConsole(null);
-        Console::resetInstance();
+        AbstractConsole::overrideIsConsole(null);
+        AbstractConsole::resetInstance();
     }
 
     public function testCanTestIsConsole()
     {
-        $this->assertTrue(Console::isConsole());
-        $className = Console::detectBestAdapter();
-        $adpater = new $className;
-        $this->assertInstanceOf('Laminas\Console\Adapter\AdapterInterface', $adpater);
+        $this->assertTrue(AbstractConsole::isConsole());
+        $className = AbstractConsole::detectBestAdapter();
+        $adpater   = new $className();
+        $this->assertInstanceOf(AdapterInterface::class, $adpater);
 
-        Console::overrideIsConsole(false);
+        AbstractConsole::overrideIsConsole(false);
 
-        $this->assertFalse(Console::isConsole());
-        $this->assertEquals(null, Console::detectBestAdapter());
+        $this->assertFalse(AbstractConsole::isConsole());
+        $this->assertEquals(null, AbstractConsole::detectBestAdapter());
     }
 
     public function testCanOverrideIsConsole()
     {
-        $this->assertEquals(true, Console::isConsole());
+        $this->assertEquals(true, AbstractConsole::isConsole());
 
-        Console::overrideIsConsole(true);
-        $this->assertEquals(true, Console::isConsole());
+        AbstractConsole::overrideIsConsole(true);
+        $this->assertEquals(true, AbstractConsole::isConsole());
 
-        Console::overrideIsConsole(false);
-        $this->assertEquals(false, Console::isConsole());
+        AbstractConsole::overrideIsConsole(false);
+        $this->assertEquals(false, AbstractConsole::isConsole());
 
-        Console::overrideIsConsole(1);
-        $this->assertEquals(true, Console::isConsole());
+        AbstractConsole::overrideIsConsole(1);
+        $this->assertEquals(true, AbstractConsole::isConsole());
 
-        Console::overrideIsConsole('false');
-        $this->assertEquals(true, Console::isConsole());
+        AbstractConsole::overrideIsConsole('false');
+        $this->assertEquals(true, AbstractConsole::isConsole());
     }
 
     public function testCanGetInstance()
     {
-        $console = Console::getInstance();
-        $this->assertInstanceOf('Laminas\Console\Adapter\AdapterInterface', $console);
+        $console = AbstractConsole::getInstance();
+        $this->assertInstanceOf(AdapterInterface::class, $console);
     }
 
     public function testCanNotGetInstanceInNoConsoleMode()
     {
-        Console::overrideIsConsole(false);
-        $this->expectException('Laminas\Console\Exception\RuntimeException');
-        Console::getInstance();
+        AbstractConsole::overrideIsConsole(false);
+        $this->expectException(RuntimeException::class);
+        AbstractConsole::getInstance();
     }
 
     public function testCanForceInstance()
     {
-        $console = Console::getInstance('Posix');
-        $this->assertInstanceOf('Laminas\Console\Adapter\AdapterInterface', $console);
-        $this->assertInstanceOf('Laminas\Console\Adapter\Posix', $console);
+        $console = AbstractConsole::getInstance('Posix');
+        $this->assertInstanceOf(AdapterInterface::class, $console);
+        $this->assertInstanceOf(Posix::class, $console);
 
-        Console::overrideIsConsole(null);
-        Console::resetInstance();
+        AbstractConsole::overrideIsConsole(null);
+        AbstractConsole::resetInstance();
 
-        $console = Console::getInstance('Windows');
-        $this->assertInstanceOf('Laminas\Console\Adapter\AdapterInterface', $console);
-        $this->assertInstanceOf('Laminas\Console\Adapter\Windows', $console);
+        $console = AbstractConsole::getInstance('Windows');
+        $this->assertInstanceOf(AdapterInterface::class, $console);
+        $this->assertInstanceOf(Windows::class, $console);
     }
 }

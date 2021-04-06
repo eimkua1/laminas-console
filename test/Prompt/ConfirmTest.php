@@ -12,23 +12,27 @@ use Laminas\Console\Prompt\Confirm;
 use LaminasTest\Console\TestAssets\ConsoleAdapter;
 use PHPUnit\Framework\TestCase;
 
+use function fclose;
+use function fopen;
+use function fwrite;
+use function ob_get_clean;
+use function ob_start;
+
 /**
  * @group      Laminas_Console
  */
 class ConfirmTest extends TestCase
 {
-    /**
-     * @var ConsoleAdapter
-     */
+    /** @var ConsoleAdapter */
     protected $adapter;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->adapter = new ConsoleAdapter();
+        $this->adapter         = new ConsoleAdapter();
         $this->adapter->stream = fopen('php://memory', 'w+');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         fclose($this->adapter->stream);
     }
@@ -42,7 +46,7 @@ class ConfirmTest extends TestCase
         $confirm->setConsole($this->adapter);
         ob_start();
         $response = $confirm->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals($text, "Is Laminas the best framework ?\n");
         $this->assertTrue($response);
     }
@@ -56,7 +60,7 @@ class ConfirmTest extends TestCase
         $confirm->setConsole($this->adapter);
         ob_start();
         $response = $confirm->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals($text, "Is Laminas the best framework ?\n");
         $this->assertTrue($response);
     }
@@ -71,7 +75,7 @@ class ConfirmTest extends TestCase
         $confirm->setIgnoreCase(false);
         ob_start();
         $response = $confirm->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals($text, "Is Laminas the best framework ?\n");
         $this->assertFalse($response);
     }
@@ -85,7 +89,7 @@ class ConfirmTest extends TestCase
         $confirm->setConsole($this->adapter);
         ob_start();
         $response = $confirm->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals($text, "Is Laminas the best framework ?\n");
         $this->assertFalse($response);
     }
@@ -101,7 +105,7 @@ class ConfirmTest extends TestCase
         $confirm->setConsole($this->adapter);
         ob_start();
         $response = $confirm->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertEquals($text, "Is Laminas the best framework ?\n");
         $this->assertTrue($response);
     }

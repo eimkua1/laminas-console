@@ -12,22 +12,22 @@ use Laminas\Stdlib\Message;
 use Laminas\Stdlib\Parameters;
 use Laminas\Stdlib\RequestInterface;
 
+use function array_shift;
+use function count;
+use function implode;
+use function ini_get;
+use function trim;
+
 class Request extends Message implements RequestInterface
 {
-    /**
-     * @var \Laminas\Stdlib\Parameters
-     */
-    protected $params = null;
+    /** @var Parameters */
+    protected $params;
 
-    /**
-     * @var \Laminas\Stdlib\Parameters
-     */
-    protected $envParams = null;
+    /** @var Parameters */
+    protected $envParams;
 
-    /**
-     * @var string
-     */
-    protected $scriptName = null;
+    /** @var string */
+    protected $scriptName;
 
     /**
      * Create a new CLI request
@@ -36,11 +36,11 @@ class Request extends Message implements RequestInterface
      * @param array|null $env Environment data. If not supplied, $_ENV will be used
      * @throws Exception\RuntimeException
      */
-    public function __construct(array $args = null, array $env = null)
+    public function __construct(?array $args = null, ?array $env = null)
     {
         if ($args === null) {
             if (! isset($_SERVER['argv'])) {
-                $errorDescription = (ini_get('register_argc_argv') == false)
+                $errorDescription = ini_get('register_argc_argv') === false
                     ? "Cannot create Console\\Request because PHP ini option 'register_argc_argv' is set Off"
                     : 'Cannot create Console\\Request because $_SERVER["argv"] is not set for unknown reason.';
                 throw new Exception\RuntimeException($errorDescription);
@@ -74,7 +74,6 @@ class Request extends Message implements RequestInterface
     /**
      * Exchange parameters object
      *
-     * @param \Laminas\Stdlib\Parameters $params
      * @return Request
      */
     public function setParams(Parameters $params)
@@ -87,7 +86,7 @@ class Request extends Message implements RequestInterface
     /**
      * Return the container responsible for parameters
      *
-     * @return \Laminas\Stdlib\Parameters
+     * @return Parameters
      */
     public function getParams()
     {
@@ -114,7 +113,7 @@ class Request extends Message implements RequestInterface
     /**
      * Return the container responsible for parameters
      *
-     * @return \Laminas\Stdlib\Parameters
+     * @return Parameters
      */
     public function params()
     {
@@ -125,8 +124,7 @@ class Request extends Message implements RequestInterface
      * Provide an alternate Parameter Container implementation for env parameters in this object, (this is NOT the
      * primary API for value setting, for that see env())
      *
-     * @param \Laminas\Stdlib\Parameters $env
-     * @return \Laminas\Console\Request
+     * @return Request
      */
     public function setEnv(Parameters $env)
     {
@@ -139,7 +137,7 @@ class Request extends Message implements RequestInterface
      *
      * @param string    $name       Parameter name
      * @param string    $default    (optional) default value in case the parameter does not exist
-     * @return \Laminas\Stdlib\Parameters
+     * @return Parameters
      */
     public function getEnv($name, $default = null)
     {
@@ -149,7 +147,7 @@ class Request extends Message implements RequestInterface
     /**
      * Return the parameter container responsible for env parameters
      *
-     * @return \Laminas\Stdlib\Parameters
+     * @return Parameters
      */
     public function env()
     {

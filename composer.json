@@ -25,16 +25,17 @@
         }
     },
     "require": {
-        "php": "^5.6 || ^7.0",
-        "laminas/laminas-stdlib": "^3.2.1",
-        "laminas/laminas-zendframework-bridge": "^1.0"
+        "php": "^7.3 || ~8.0.0",
+        "laminas/laminas-stdlib": "^3.3",
+        "laminas/laminas-zendframework-bridge": "^1.2"
     },
     "require-dev": {
-        "laminas/laminas-coding-standard": "~1.0.0",
-        "laminas/laminas-filter": "^2.7.2",
-        "laminas/laminas-json": "^2.6 || ^3.0",
-        "laminas/laminas-validator": "^2.10.1",
-        "phpunit/phpunit": "^5.7.23 || ^6.4.3 || ^7.5.18"
+        "laminas/laminas-coding-standard": "^2.1",
+        "laminas/laminas-filter": "^2.11",
+        "laminas/laminas-json": "^3.2",
+        "laminas/laminas-validator": "^2.14",
+        "phpspec/prophecy-phpunit": "^2.0",
+        "phpunit/phpunit": "^9.3"
     },
     "suggest": {
         "laminas/laminas-filter": "To support DefaultRouteMatcher usage",

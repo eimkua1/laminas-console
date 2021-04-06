@@ -12,15 +12,15 @@ use Laminas\Console\Charset\CharsetInterface;
 
 interface AdapterInterface
 {
-    const LINE_NONE = 1;
-    const LINE_SINGLE = 2;
-    const LINE_DOUBLE = 3;
-    const LINE_BLOCK = 4;
-    const FILL_NONE = 0;
-    const FILL_SHADE_LIGHT = 1;
-    const FILL_SHADE_MEDIUM = 2;
-    const FILL_SHADE_DARK = 3;
-    const FILL_BLOCK = 10;
+    public const LINE_NONE         = 1;
+    public const LINE_SINGLE       = 2;
+    public const LINE_DOUBLE       = 3;
+    public const LINE_BLOCK        = 4;
+    public const FILL_NONE         = 0;
+    public const FILL_SHADE_LIGHT  = 1;
+    public const FILL_SHADE_MEDIUM = 2;
+    public const FILL_SHADE_DARK   = 3;
+    public const FILL_BLOCK        = 10;
 
     /**
      * Write a chunk of text to console.
@@ -158,12 +158,14 @@ interface AdapterInterface
 
     /**
      * Hide console cursor
+     *
      * @return void
      */
     public function hideCursor();
 
     /**
      * Show console cursor
+     *
      * @return void
      */
     public function showCursor();
@@ -203,6 +205,7 @@ interface AdapterInterface
 
     /**
      * Reset color to console default.
+     *
      * @return void
      */
     public function resetColor();
@@ -210,7 +213,6 @@ interface AdapterInterface
     /**
      * Set Console charset to use.
      *
-     * @param CharsetInterface $charset
      * @return void
      */
     public function setCharset(CharsetInterface $charset);
@@ -229,18 +231,21 @@ interface AdapterInterface
 
     /**
      * Clear console screen
+     *
      * @return void
      */
     public function clear();
 
     /**
      * Clear line at cursor position
+     *
      * @return void
      */
     public function clearLine();
 
     /**
      * Clear console screen
+     *
      * @return void
      */
     public function clearScreen();

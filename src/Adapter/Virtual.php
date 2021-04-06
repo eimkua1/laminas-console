@@ -10,6 +10,13 @@ namespace Laminas\Console\Adapter;
 
 use Laminas\Console\Charset;
 
+use function count;
+use function exec;
+use function implode;
+use function preg_match;
+use function shell_exec;
+use function trim;
+
 /**
  * Virtual buffer adapter
  */
@@ -20,7 +27,7 @@ class Virtual extends AbstractAdapter
      *
      * @var null|bool
      */
-    protected static $hasMBString;
+    protected static $hasMbString;
 
     /**
      * Results of mode system command
@@ -109,7 +116,7 @@ class Virtual extends AbstractAdapter
         }
 
         if (preg_match('/Code page\:\s+(\d+)/', $this->modeResult, $matches)) {
-            return (int) $matches[1] == 65001;
+            return (int) $matches[1] === 65001;
         }
 
         return false;
@@ -133,8 +140,6 @@ class Virtual extends AbstractAdapter
 
     /**
      * Set Console charset to use.
-     *
-     * @param Charset\CharsetInterface $charset
      */
     public function setCharset(Charset\CharsetInterface $charset)
     {
@@ -160,7 +165,7 @@ class Virtual extends AbstractAdapter
      */
     public function getDefaultCharset()
     {
-        return new Charset\AsciiExtended;
+        return new Charset\AsciiExtended();
     }
 
     /**

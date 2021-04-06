@@ -8,31 +8,28 @@
 
 namespace Laminas\Console\Prompt;
 
+use function array_unique;
+use function implode;
+use function str_split;
+use function strtolower;
+use function strtoupper;
+use function trim;
+
 class Char extends AbstractPrompt
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $promptText;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $allowEmpty;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $allowedChars;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $ignoreCase;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $echo;
 
     /**
@@ -55,7 +52,7 @@ class Char extends AbstractPrompt
         $this->setAllowEmpty($allowEmpty);
         $this->setIgnoreCase($ignoreCase);
 
-        if (null != $allowedChars) {
+        if (null !== $allowedChars) {
             if ($this->ignoreCase) {
                 $this->setAllowedChars(strtolower($allowedChars));
             } else {
@@ -80,11 +77,11 @@ class Char extends AbstractPrompt
          * Normalize the mask if case is irrelevant
          */
         if ($this->ignoreCase) {
-            $mask = strtolower($mask);    // lowercase all
+            $mask  = strtolower($mask);    // lowercase all
             $mask .= strtoupper($mask);   // uppercase and append
-            $mask = str_split($mask);     // convert to array
-            $mask = array_unique($mask);  // remove duplicates
-            $mask = implode('', $mask);   // convert back to string
+            $mask  = str_split($mask);     // convert to array
+            $mask  = array_unique($mask);  // remove duplicates
+            $mask  = implode('', $mask);   // convert back to string
         }
 
         /*

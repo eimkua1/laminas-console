@@ -8,21 +8,19 @@
 
 namespace Laminas\Console\Prompt;
 
+use Laminas\Console\AbstractConsole;
 use Laminas\Console\Adapter\AdapterInterface as ConsoleAdapter;
-use Laminas\Console\Console;
 use Laminas\Console\Exception;
 use ReflectionClass;
 
+use function func_get_args;
+
 abstract class AbstractPrompt implements PromptInterface
 {
-    /**
-     * @var ConsoleAdapter
-     */
+    /** @var ConsoleAdapter */
     protected $console;
 
-    /**
-     * @var mixed
-     */
+    /** @var mixed */
     protected $lastResponse;
 
     /**
@@ -43,7 +41,7 @@ abstract class AbstractPrompt implements PromptInterface
     public function getConsole()
     {
         if (! $this->console) {
-            $this->console = Console::getInstance();
+            $this->console = AbstractConsole::getInstance();
         }
 
         return $this->console;
@@ -51,8 +49,6 @@ abstract class AbstractPrompt implements PromptInterface
 
     /**
      * Set console adapter to use when showing prompt.
-     *
-     * @param ConsoleAdapter $adapter
      */
     public function setConsole(ConsoleAdapter $adapter)
     {
@@ -71,13 +67,13 @@ abstract class AbstractPrompt implements PromptInterface
      */
     public static function prompt()
     {
-        if (get_called_class() === __CLASS__) {
+        if (static::class === self::class) {
             throw new Exception\BadMethodCallException(
                 'Cannot call prompt() on AbstractPrompt class. Use one of the Laminas\Console\Prompt\ subclasses.'
             );
         }
 
-        $refl     = new ReflectionClass(get_called_class());
+        $refl     = new ReflectionClass(static::class);
         $instance = $refl->newInstanceArgs(func_get_args());
         return $instance->show();
     }

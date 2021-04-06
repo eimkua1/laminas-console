@@ -11,481 +11,483 @@ namespace LaminasTest\Console\RouteMatcher;
 use Laminas\Console\Exception\InvalidArgumentException;
 use Laminas\Console\RouteMatcher\DefaultRouteMatcher;
 use Laminas\Filter\FilterInterface;
+use Laminas\Filter\StringToLower;
+use Laminas\Filter\ToInt;
 use Laminas\Validator\Digits;
 use Laminas\Validator\StringLength;
 use PHPUnit\Framework\TestCase;
+use stdClass;
+
+use function class_exists;
+use function is_array;
 
 /**
- * @category   Laminas
- * @package    Laminas_Console
- * @subpackage UnitTests
  * @group      Laminas_Console
  */
 class DefaultRouteMatcherTest extends TestCase
 {
-    public static function routeProvider()
+    public static function routeProvider(): array
     {
         return [
             // -- mandatory long flags
-            'mandatory-long-flag-no-match' => [
+            'mandatory-long-flag-no-match'                 => [
                 '--foo --bar',
-                ['a','b','--baz'],
-                null
+                ['a', 'b', '--baz'],
+                null,
             ],
-            'mandatory-long-flag-no-partial-match' => [
+            'mandatory-long-flag-no-partial-match'         => [
                 '--foo --bar',
-                ['--foo','--baz'],
-                null
+                ['--foo', '--baz'],
+                null,
             ],
-            'mandatory-long-flag-match' => [
+            'mandatory-long-flag-match'                    => [
                 '--foo --bar',
-                ['--foo','--bar'],
-                ['foo' => true, 'bar' => true]
+                ['--foo', '--bar'],
+                ['foo' => true, 'bar' => true],
             ],
-            'mandatory-long-flag-match-with-zero-value' => [
+            'mandatory-long-flag-match-with-zero-value'    => [
                 '--foo=',
                 ['--foo=0'],
-                ['foo' => 0]
+                ['foo' => 0],
             ],
-            'mandatory-long-flag-mixed-order-match' => [
+            'mandatory-long-flag-mixed-order-match'        => [
                 '--foo --bar',
-                ['--bar','--foo'],
-                ['foo' => true, 'bar' => true]
+                ['--bar', '--foo'],
+                ['foo' => true, 'bar' => true],
             ],
             'mandatory-long-flag-whitespace-in-definition' => [
                 '      --foo   --bar ',
-                ['--bar','--foo'],
+                ['--bar', '--foo'],
                 [
                     'foo' => true,
                     'bar' => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'mandatory-long-flag-alternative1' => [
+            'mandatory-long-flag-alternative1'             => [
                 ' ( --foo | --bar )',
                 ['--foo'],
                 [
                     'foo' => true,
                     'bar' => false,
                     'baz' => null,
-                ]
+                ],
             ],
-            'mandatory-long-flag-alternative2' => [
+            'mandatory-long-flag-alternative2'             => [
                 ' ( --foo | --bar )',
                 ['--bar'],
                 [
                     'foo' => false,
                     'bar' => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'mandatory-long-flag-alternative3' => [
+            'mandatory-long-flag-alternative3'             => [
                 ' ( --foo | --bar )',
                 ['--baz'],
-                null
+                null,
             ],
-            'mandatory-long-flag-alternative-duplicates' => [
+            'mandatory-long-flag-alternative-duplicates'   => [
                 '(--foo | --foo | --bar)',
                 ['--foo'],
                 [
                     'foo' => true,
                     'bar' => false,
                     'baz' => null,
-                ]
+                ],
             ],
 
             // -- mandatory short flags
-            'mandatory-short-flag-no-match' => [
+            'mandatory-short-flag-no-match'                 => [
                 '-f -b',
-                ['a','b','-f'],
-                null
+                ['a', 'b', '-f'],
+                null,
             ],
-            'mandatory-short-flag-no-partial-match' => [
+            'mandatory-short-flag-no-partial-match'         => [
                 '-f -b',
-                ['-f','-z'],
-                null
+                ['-f', '-z'],
+                null,
             ],
-            'mandatory-short-flag-match' => [
+            'mandatory-short-flag-match'                    => [
                 '-f -b',
-                ['-f','-b'],
-                ['f' => true, 'b' => true]
+                ['-f', '-b'],
+                ['f' => true, 'b' => true],
             ],
-            'mandatory-short-flag-mixed-order-match' => [
+            'mandatory-short-flag-mixed-order-match'        => [
                 '-f -b',
-                ['-b','-f'],
-                ['f' => true, 'b' => true]
+                ['-b', '-f'],
+                ['f' => true, 'b' => true],
             ],
             'mandatory-short-flag-whitespace-in-definition' => [
                 '      -f   -b ',
-                ['-b','-f'],
+                ['-b', '-f'],
                 [
-                    'f' => true,
-                    'b' => true,
+                    'f'   => true,
+                    'b'   => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'mandatory-short-flag-alternative1' => [
+            'mandatory-short-flag-alternative1'             => [
                 ' ( -f | -b )',
                 ['-f'],
                 [
-                    'f' => true,
-                    'b' => false,
+                    'f'   => true,
+                    'b'   => false,
                     'baz' => null,
-                ]
+                ],
             ],
-            'mandatory-short-flag-alternative2' => [
+            'mandatory-short-flag-alternative2'             => [
                 ' ( -f | -b )',
                 ['-b'],
                 [
-                    'f' => false,
-                    'b' => true,
+                    'f'   => false,
+                    'b'   => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'mandatory-short-flag-alternative3' => [
+            'mandatory-short-flag-alternative3'             => [
                 ' ( -f | -b )',
                 ['--baz'],
-                null
+                null,
             ],
 
             // -- optional long flags
-            'optional-long-flag-non-existent' => [
+            'optional-long-flag-non-existent'                  => [
                 '--foo [--bar]',
                 ['--foo'],
                 [
                     'foo' => true,
                     'bar' => null,
                     'baz' => null,
-                ]
+                ],
             ],
-            'literal-optional-long-flag' => [
+            'literal-optional-long-flag'                       => [
                 'foo [--bar]',
                 ['foo', '--bar'],
                 [
                     'foo' => null,
                     'bar' => true,
-                ]
+                ],
             ],
-            'optional-long-flag-partial-mismatch' => [
+            'optional-long-flag-partial-mismatch'              => [
                 '--foo [--bar]',
                 ['--foo', '--baz'],
-                null
+                null,
             ],
-            'optional-long-flag-match' => [
+            'optional-long-flag-match'                         => [
                 '--foo [--bar]',
-                ['--foo','--bar'],
+                ['--foo', '--bar'],
                 [
                     'foo' => true,
-                    'bar' => true
-                ]
+                    'bar' => true,
+                ],
             ],
-            'optional-long-value-flag-non-existent' => [
+            'optional-long-value-flag-non-existent'            => [
                 '--foo [--bar=]',
                 ['--foo'],
                 [
                     'foo' => true,
-                    'bar' => false
-                ]
+                    'bar' => false,
+                ],
             ],
-            'optional-long-flag-match-with-zero-value' => [
+            'optional-long-flag-match-with-zero-value'         => [
                 '[--foo=]',
                 ['--foo=0'],
-                ['foo' => 0]
+                ['foo' => 0],
             ],
-            'optional-long-value-flag' => [
+            'optional-long-value-flag'                         => [
                 '--foo [--bar=]',
                 ['--foo', '--bar=4'],
                 [
                     'foo' => true,
-                    'bar' => 4
-                ]
+                    'bar' => 4,
+                ],
             ],
             'optional-long-value-flag-non-existent-mixed-case' => [
                 '--foo [--barBaz=]',
                 ['--foo', '--barBaz=4'],
                 [
                     'foo'    => true,
-                    'barBaz' => 4
-                ]
+                    'barBaz' => 4,
+                ],
             ],
-            'value-optional-long-value-flag' => [
+            'value-optional-long-value-flag'                   => [
                 '<foo> [--bar=]',
                 ['value', '--bar=4'],
                 [
                     'foo' => 'value',
-                    'bar' => 4
-                ]
+                    'bar' => 4,
+                ],
             ],
-            'literal-optional-long-value-flag' => [
+            'literal-optional-long-value-flag'                 => [
                 'foo [--bar=]',
                 ['foo', '--bar=4'],
                 [
                     'foo' => null,
                     'bar' => 4,
-                ]
+                ],
             ],
-            'optional-long-flag-mixed-order-match' => [
+            'optional-long-flag-mixed-order-match'             => [
                 '--foo --bar',
-                ['--bar','--foo'],
-                ['foo' => true, 'bar' => true]
+                ['--bar', '--foo'],
+                ['foo' => true, 'bar' => true],
             ],
-            'optional-long-flag-whitespace-in-definition' => [
+            'optional-long-flag-whitespace-in-definition'      => [
                 '      --foo   [--bar] ',
-                ['--bar','--foo'],
+                ['--bar', '--foo'],
                 [
                     'foo' => true,
                     'bar' => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'optional-long-flag-whitespace-in-definition2' => [
+            'optional-long-flag-whitespace-in-definition2'     => [
                 '      --foo     [--bar      ] ',
-                ['--bar','--foo'],
+                ['--bar', '--foo'],
                 [
                     'foo' => true,
                     'bar' => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'optional-long-flag-whitespace-in-definition3' => [
+            'optional-long-flag-whitespace-in-definition3'     => [
                 '      --foo   [   --bar     ] ',
-                ['--bar','--foo'],
+                ['--bar', '--foo'],
                 [
                     'foo' => true,
                     'bar' => true,
                     'baz' => null,
-                ]
+                ],
             ],
-
 
             // -- value flags
             'mandatory-value-flag-syntax-1' => [
                 '--foo=s',
-                ['--foo','bar'],
+                ['--foo', 'bar'],
                 [
                     'foo' => 'bar',
-                    'bar' => null
-                ]
+                    'bar' => null,
+                ],
             ],
             'mandatory-value-flag-syntax-2' => [
                 '--foo=',
-                ['--foo','bar'],
+                ['--foo', 'bar'],
                 [
                     'foo' => 'bar',
-                    'bar' => null
-                ]
+                    'bar' => null,
+                ],
             ],
             'mandatory-value-flag-syntax-3' => [
                 '--foo=anystring',
-                ['--foo','bar'],
+                ['--foo', 'bar'],
                 [
                     'foo' => 'bar',
-                    'bar' => null
-                ]
+                    'bar' => null,
+                ],
             ],
 
             // -- edge cases for value flags values
             'mandatory-value-flag-equals-complex-1' => [
                 '--foo=',
                 ['--foo=SomeComplexValue=='],
-                ['foo' => 'SomeComplexValue==']
+                ['foo' => 'SomeComplexValue=='],
             ],
             'mandatory-value-flag-equals-complex-2' => [
                 '--foo=',
                 ['--foo=...,</\/\\//""\'\'\'"\"'],
-                ['foo' => '...,</\/\\//""\'\'\'"\"']
+                ['foo' => '...,</\/\\//""\'\'\'"\"'],
             ],
             'mandatory-value-flag-equals-complex-3' => [
                 '--foo=',
                 ['--foo====--'],
-                ['foo' => '===--']
+                ['foo' => '===--'],
             ],
-            'mandatory-value-flag-space-complex-1' => [
+            'mandatory-value-flag-space-complex-1'  => [
                 '--foo=',
-                ['--foo','SomeComplexValue=='],
-                ['foo' => 'SomeComplexValue==']
+                ['--foo', 'SomeComplexValue=='],
+                ['foo' => 'SomeComplexValue=='],
             ],
-            'mandatory-value-flag-space-complex-2' => [
+            'mandatory-value-flag-space-complex-2'  => [
                 '--foo=',
-                ['--foo','...,</\/\\//""\'\'\'"\"'],
-                ['foo' => '...,</\/\\//""\'\'\'"\"']
+                ['--foo', '...,</\/\\//""\'\'\'"\"'],
+                ['foo' => '...,</\/\\//""\'\'\'"\"'],
             ],
-            'mandatory-value-flag-space-complex-3' => [
+            'mandatory-value-flag-space-complex-3'  => [
                 '--foo=',
-                ['--foo','===--'],
-                ['foo' => '===--']
+                ['--foo', '===--'],
+                ['foo' => '===--'],
             ],
 
             // -- required literal params
-            'mandatory-literal-match-1' => [
+            'mandatory-literal-match-1'                             => [
                 'foo',
                 ['foo'],
-                ['foo' => null]
+                ['foo' => null],
             ],
-            'mandatory-literal-match-2' => [
+            'mandatory-literal-match-2'                             => [
                 'foo bar baz',
-                ['foo','bar','baz'],
-                ['foo' => null, 'bar' => null, 'baz' => null, 'bazinga' => null]
+                ['foo', 'bar', 'baz'],
+                ['foo' => null, 'bar' => null, 'baz' => null, 'bazinga' => null],
             ],
-            'mandatory-literal-mismatch' => [
+            'mandatory-literal-mismatch'                            => [
                 'foo',
                 ['fooo'],
-                null
+                null,
             ],
-            'mandatory-literal-colon-match' => [
+            'mandatory-literal-colon-match'                         => [
                 'foo:bar',
                 ['foo:bar'],
-                ['foo:bar' => null]
+                ['foo:bar' => null],
             ],
-            'mandatory-literal-colon-match-2' => [
+            'mandatory-literal-colon-match-2'                       => [
                 'foo:bar baz',
                 ['foo:bar', 'baz'],
-                ['foo:bar' => null, 'baz' => null]
+                ['foo:bar' => null, 'baz' => null],
             ],
-            'mandatory-literal-order' => [
+            'mandatory-literal-order'                               => [
                 'foo bar',
-                ['bar','foo'],
-                null
+                ['bar', 'foo'],
+                null,
             ],
-            'mandatory-literal-order-colon' => [
+            'mandatory-literal-order-colon'                         => [
                 'foo bar baz:inga',
-                ['bar','foo', 'baz:inga'],
-                null
+                ['bar', 'foo', 'baz:inga'],
+                null,
             ],
-            'mandatory-literal-partial-mismatch' => [
+            'mandatory-literal-partial-mismatch'                    => [
                 'foo bar baz',
-                ['foo','bar'],
-                null
+                ['foo', 'bar'],
+                null,
             ],
-            'mandatory-literal-alternative-match-1' => [
+            'mandatory-literal-alternative-match-1'                 => [
                 'foo ( bar | baz )',
-                ['foo','bar'],
-                ['foo' => null, 'bar' => true, 'baz' => false]
+                ['foo', 'bar'],
+                ['foo' => null, 'bar' => true, 'baz' => false],
             ],
-            'mandatory-literal-alternative-match-2' => [
+            'mandatory-literal-alternative-match-2'                 => [
                 'foo (bar|baz)',
-                ['foo','bar'],
-                ['foo' => null, 'bar' => true, 'baz' => false]
+                ['foo', 'bar'],
+                ['foo' => null, 'bar' => true, 'baz' => false],
             ],
-            'mandatory-literal-alternative-match-3' => [
+            'mandatory-literal-alternative-match-3'                 => [
                 'foo ( bar    |   baz )',
-                ['foo','baz'],
-                ['foo' => null, 'bar' => false, 'baz' => true]
+                ['foo', 'baz'],
+                ['foo' => null, 'bar' => false, 'baz' => true],
             ],
-            'mandatory-literal-alternative-mismatch' => [
+            'mandatory-literal-alternative-mismatch'                => [
                 'foo ( bar |   baz )',
-                ['foo','bazinga'],
-                null
+                ['foo', 'bazinga'],
+                null,
             ],
-            'mandatory-literal-namedAlternative-match-1' => [
+            'mandatory-literal-namedAlternative-match-1'            => [
                 'foo ( bar | baz ):altGroup',
-                ['foo','bar'],
-                ['foo' => null, 'altGroup' => 'bar', 'bar' => true, 'baz' => false]
+                ['foo', 'bar'],
+                ['foo' => null, 'altGroup' => 'bar', 'bar' => true, 'baz' => false],
             ],
             'mandatory-literal-namedAlternative-match-1-duplicates' => [
                 'foo ( bar | bar | baz ):altGroup',
-                ['foo','bar'],
-                ['foo' => null, 'altGroup' => 'bar', 'bar' => true, 'baz' => false]
+                ['foo', 'bar'],
+                ['foo' => null, 'altGroup' => 'bar', 'bar' => true, 'baz' => false],
             ],
-            'mandatory-literal-namedAlternative-match-2' => [
+            'mandatory-literal-namedAlternative-match-2'            => [
                 'foo ( bar |   baz   ):altGroup9',
-                ['foo','baz'],
-                ['foo' => null, 'altGroup9' => 'baz', 'bar' => false, 'baz' => true]
+                ['foo', 'baz'],
+                ['foo' => null, 'altGroup9' => 'baz', 'bar' => false, 'baz' => true],
             ],
-            'mandatory-literal-namedAlternative-mismatch' => [
+            'mandatory-literal-namedAlternative-mismatch'           => [
                 'foo ( bar |   baz   ):altGroup9',
-                ['foo','bazinga'],
-                null
+                ['foo', 'bazinga'],
+                null,
             ],
 
             // -- optional literal params
-            'optional-literal-match' => [
+            'optional-literal-match'                     => [
                 'foo [bar] [baz]',
-                ['foo','bar'],
-                ['foo' => null, 'bar' => true, 'baz' => null]
+                ['foo', 'bar'],
+                ['foo' => null, 'bar' => true, 'baz' => null],
             ],
-            'optional-literal-colon-match' => [
+            'optional-literal-colon-match'               => [
                 'foo [bar] [baz:inga]',
-                ['foo','bar'],
-                ['foo' => null, 'bar' => true, 'baz:inga' => null]
+                ['foo', 'bar'],
+                ['foo' => null, 'bar' => true, 'baz:inga' => null],
             ],
-            'optional-literal-mismatch' => [
+            'optional-literal-mismatch'                  => [
                 'foo [bar] [baz]',
-                ['baz','bar'],
-                null
+                ['baz', 'bar'],
+                null,
             ],
-            'optional-literal-colon-mismatch' => [
+            'optional-literal-colon-mismatch'            => [
                 'foo [bar] [baz:inga]',
-                ['baz:inga','bar'],
-                null
+                ['baz:inga', 'bar'],
+                null,
             ],
-            'optional-literal-shuffled-mismatch' => [
+            'optional-literal-shuffled-mismatch'         => [
                 'foo [bar] [baz]',
-                ['foo','baz','bar'],
-                null
+                ['foo', 'baz', 'bar'],
+                null,
             ],
-            'optional-literal-alternative-match' => [
+            'optional-literal-alternative-match'         => [
                 'foo [bar | baz]',
-                ['foo','baz'],
-                ['foo' => null, 'baz' => true, 'bar' => false]
+                ['foo', 'baz'],
+                ['foo' => null, 'baz' => true, 'bar' => false],
             ],
-            'optional-literal-alternative-mismatch' => [
+            'optional-literal-alternative-mismatch'      => [
                 'foo [bar | baz]',
                 ['foo'],
-                ['foo' => null, 'baz' => false, 'bar' => false]
+                ['foo' => null, 'baz' => false, 'bar' => false],
             ],
-            'optional-literal-namedAlternative-match-1' => [
+            'optional-literal-namedAlternative-match-1'  => [
                 'foo [bar | baz]:altGroup1',
-                ['foo','baz'],
-                ['foo' => null, 'altGroup1' => 'baz', 'baz' => true, 'bar' => false]
+                ['foo', 'baz'],
+                ['foo' => null, 'altGroup1' => 'baz', 'baz' => true, 'bar' => false],
             ],
-            'optional-literal-namedAlternative-match-2' => [
+            'optional-literal-namedAlternative-match-2'  => [
                 'foo [bar | baz | bazinga]:altGroup100',
-                ['foo','bazinga'],
-                ['foo' => null, 'altGroup100' => 'bazinga', 'bazinga' => true, 'baz' => false, 'bar' => false]
+                ['foo', 'bazinga'],
+                ['foo' => null, 'altGroup100' => 'bazinga', 'bazinga' => true, 'baz' => false, 'bar' => false],
             ],
-            'optional-literal-namedAlternative-match-3' => [
+            'optional-literal-namedAlternative-match-3'  => [
                 'foo [ bar ]:altGroup100',
-                ['foo','bar'],
-                ['foo' => null, 'altGroup100' => 'bar', 'bar' => true, 'baz' => null]
+                ['foo', 'bar'],
+                ['foo' => null, 'altGroup100' => 'bar', 'bar' => true, 'baz' => null],
             ],
             'optional-literal-namedAlternative-mismatch' => [
                 'foo [ bar | baz ]:altGroup9',
                 ['foo'],
-                ['foo' => null, 'altGroup9' => null, 'bar' => false, 'baz' => false]
+                ['foo' => null, 'altGroup9' => null, 'bar' => false, 'baz' => false],
             ],
 
             // -- value params
-            'mandatory-value-param-syntax-1' => [
+            'mandatory-value-param-syntax-1'           => [
                 'FOO',
                 ['bar'],
                 [
                     'foo' => 'bar',
-                    'bar' => null
-                ]
+                    'bar' => null,
+                ],
             ],
-            'mandatory-value-param-syntax-2' => [
+            'mandatory-value-param-syntax-2'           => [
                 '<foo>',
                 ['bar'],
                 [
                     'foo' => 'bar',
-                    'bar' => null
-                ]
+                    'bar' => null,
+                ],
             ],
             'mandatory-value-param-mixed-with-literal' => [
                 'a b <foo> c',
-                ['a','b','bar','c'],
+                ['a', 'b', 'bar', 'c'],
                 [
-                    'a' => null,
-                    'b' => null,
+                    'a'   => null,
+                    'b'   => null,
                     'foo' => 'bar',
                     'bar' => null,
-                    'c' => null,
+                    'c'   => null,
                 ],
             ],
-            'optional-value-param-1' => [
+            'optional-value-param-1'                   => [
                 'a b [<c>]',
-                ['a','b','bar'],
+                ['a', 'b', 'bar'],
                 [
                     'a'   => null,
                     'b'   => null,
@@ -493,9 +495,9 @@ class DefaultRouteMatcherTest extends TestCase
                     'bar' => null,
                 ],
             ],
-            'optional-value-param-2' => [
+            'optional-value-param-2'                   => [
                 'a b [<c>]',
-                ['a','b'],
+                ['a', 'b'],
                 [
                     'a'   => null,
                     'b'   => null,
@@ -503,69 +505,67 @@ class DefaultRouteMatcherTest extends TestCase
                     'bar' => null,
                 ],
             ],
-            'optional-value-param-3' => [
+            'optional-value-param-3'                   => [
                 'a b [<c>]',
-                ['a','b','--c'],
-                null
+                ['a', 'b', '--c'],
+                null,
             ],
 
             // -- combinations
-            'mandatory-long-short-alternative-1' => [
+            'mandatory-long-short-alternative-1'               => [
                 ' ( --foo | -f )',
                 ['--foo'],
                 [
                     'foo' => true,
                     'f'   => false,
                     'baz' => null,
-                ]
+                ],
             ],
-            'mandatory-long-short-alternative-2' => [
+            'mandatory-long-short-alternative-2'               => [
                 ' ( --foo | -f )',
                 ['-f'],
                 [
                     'foo' => false,
                     'f'   => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'optional-long-short-alternative-1' => [
+            'optional-long-short-alternative-1'                => [
                 'a <b> [ --foo | -f ]',
-                ['a','bar'],
+                ['a', 'bar'],
                 [
                     'a'   => null,
                     'b'   => 'bar',
                     'foo' => false,
                     'f'   => false,
                     'baz' => null,
-                ]
+                ],
             ],
-            'optional-long-short-alternative-2' => [
+            'optional-long-short-alternative-2'                => [
                 'a <b> [ --foo | -f ]',
-                ['a','bar', '-f'],
+                ['a', 'bar', '-f'],
                 [
                     'a'   => null,
                     'b'   => 'bar',
                     'foo' => false,
                     'f'   => true,
                     'baz' => null,
-                ]
+                ],
             ],
-            'optional-long-short-alternative-3' => [
+            'optional-long-short-alternative-3'                => [
                 'a <b> [ --foo | -f ]',
-                ['a','--foo', 'bar'],
+                ['a', '--foo', 'bar'],
                 [
                     'a'   => null,
                     'b'   => 'bar',
                     'foo' => true,
                     'f'   => false,
                     'baz' => null,
-                ]
+                ],
             ],
-
-
             'mandatory-and-optional-value-params-with-flags-1' => [
                 'a b <c> [<d>] [--eee|-e] [--fff|-f]',
-                ['a','b','foo','bar'],
+                ['a', 'b', 'foo', 'bar'],
                 [
                     'a'   => null,
                     'b'   => null,
@@ -579,7 +579,7 @@ class DefaultRouteMatcherTest extends TestCase
             ],
             'mandatory-and-optional-value-params-with-flags-2' => [
                 'a b <c> [<d>] [--eee|-e] [--fff|-f]',
-                ['a','b','--eee', 'foo','bar'],
+                ['a', 'b', '--eee', 'foo', 'bar'],
                 [
                     'a'   => null,
                     'b'   => null,
@@ -592,47 +592,46 @@ class DefaultRouteMatcherTest extends TestCase
                 ],
             ],
 
-
             // -- overflows
             'too-many-arguments1' => [
                 'foo bar',
-                ['foo','bar','baz'],
-                null
+                ['foo', 'bar', 'baz'],
+                null,
             ],
             'too-many-arguments2' => [
                 'foo bar [baz]',
-                ['foo','bar','baz','woo'],
+                ['foo', 'bar', 'baz', 'woo'],
                 null,
             ],
             'too-many-arguments3' => [
                 'foo bar [--baz]',
-                ['foo','bar','--baz','woo'],
+                ['foo', 'bar', '--baz', 'woo'],
                 null,
             ],
             'too-many-arguments4' => [
                 'foo bar [--baz] woo',
-                ['foo','bar','woo'],
+                ['foo', 'bar', 'woo'],
                 [
                     'foo' => null,
                     'bar' => null,
                     'baz' => false,
-                    'woo' => null
-                ]
+                    'woo' => null,
+                ],
             ],
             'too-many-arguments5' => [
                 '--foo --bar [--baz] woo',
-                ['--bar','--foo','woo'],
+                ['--bar', '--foo', 'woo'],
                 [
                     'foo' => true,
                     'bar' => true,
                     'baz' => false,
-                    'woo' => null
-                ]
+                    'woo' => null,
+                ],
             ],
             'too-many-arguments6' => [
                 '--foo --bar [--baz]',
-                ['--bar','--foo','woo'],
-                null
+                ['--bar', '--foo', 'woo'],
+                null,
             ],
 
             // other (combination)
@@ -641,28 +640,28 @@ class DefaultRouteMatcherTest extends TestCase
                 ['literal', 'oneBar', '--foo=4', '--baz'],
                 [
                     'literal' => null,
-                    'bar' => 'oneBar',
-                    'foo' => 4,
-                    'baz' => true
-                ]
+                    'bar'     => 'oneBar',
+                    'foo'     => 4,
+                    'baz'     => true,
+                ],
             ],
             // group with group name different than options (short)
             'group-1' => [
                 'group [-t|--test]:testgroup',
                 ['group', '-t'],
                 [
-                    'group' => null,
+                    'group'     => null,
                     'testgroup' => true,
-                ]
+                ],
             ],
             // group with group name different than options (long)
             'group-2' => [
                 'group [-t|--test]:testgroup',
                 ['group', '--test'],
                 [
-                    'group' => null,
+                    'group'     => null,
                     'testgroup' => true,
-                ]
+                ],
             ],
             // group with same name as option (short)
             'group-3' => [
@@ -670,8 +669,8 @@ class DefaultRouteMatcherTest extends TestCase
                 ['group', '-t'],
                 [
                     'group' => null,
-                    'test' => true,
-                ]
+                    'test'  => true,
+                ],
             ],
             // group with same name as option (long)
             'group-4' => [
@@ -679,15 +678,15 @@ class DefaultRouteMatcherTest extends TestCase
                 ['group', '--test'],
                 [
                     'group' => null,
-                    'test' => true,
-                ]
+                    'test'  => true,
+                ],
             ],
             'group-5' => [
                 'group (-t | --test ):test',
                 ['group', '--test'],
                 [
                     'group' => null,
-                    'test' => true,
+                    'test'  => true,
                 ],
             ],
             'group-6' => [
@@ -695,7 +694,7 @@ class DefaultRouteMatcherTest extends TestCase
                 ['group', '-t'],
                 [
                     'group' => null,
-                    'test' => true,
+                    'test'  => true,
                 ],
             ],
             'group-7' => [
@@ -703,7 +702,7 @@ class DefaultRouteMatcherTest extends TestCase
                 ['group', '-y'],
                 [
                     'group' => null,
-                    'test' => true,
+                    'test'  => true,
                 ],
             ],
             'group-8' => [
@@ -711,7 +710,7 @@ class DefaultRouteMatcherTest extends TestCase
                 ['group', '--foo'],
                 [
                     'group' => null,
-                    'test' => true,
+                    'test'  => true,
                 ],
             ],
             'group-9' => [
@@ -719,27 +718,27 @@ class DefaultRouteMatcherTest extends TestCase
                 ['group', '--foo'],
                 [
                     'group' => null,
-                    'test' => true,
+                    'test'  => true,
                 ],
             ],
 
             /**
-             * @bug Laminas-4315
              * @link https://github.com/zendframework/zf2/issues/4315
+             *
+             * @bug Laminas-4315
              */
-            'literal-with-dashes' => [
+            'literal-with-dashes'                            => [
                 'foo-bar-baz [--bar=]',
-                ['foo-bar-baz',],
+                ['foo-bar-baz'],
                 [
                     'foo-bar-baz' => null,
                     'foo'         => null,
                     'bar'         => null,
                     'baz'         => null,
                     'something'   => null,
-                ]
+                ],
             ],
-
-            'literal-optional-with-dashes' => [
+            'literal-optional-with-dashes'                   => [
                 '[foo-bar-baz] [--bar=]',
                 ['foo-bar-baz'],
                 [
@@ -748,9 +747,9 @@ class DefaultRouteMatcherTest extends TestCase
                     'bar'         => null,
                     'baz'         => null,
                     'something'   => null,
-                ]
+                ],
             ],
-            'literal-optional-with-dashes2' => [
+            'literal-optional-with-dashes2'                  => [
                 'foo [foo-bar-baz] [--bar=]',
                 ['foo'],
                 [
@@ -759,112 +758,111 @@ class DefaultRouteMatcherTest extends TestCase
                     'bar'         => null,
                     'baz'         => null,
                     'something'   => null,
-                ]
+                ],
             ],
-            'literal-alternative-with-dashes' => [
+            'literal-alternative-with-dashes'                => [
                 '(foo-bar|foo-baz) [--bar=]',
-                ['foo-bar',],
+                ['foo-bar'],
                 [
-                    'foo-bar'     => true,
-                    'foo-baz'     => false,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo-bar'   => true,
+                    'foo-baz'   => false,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
-            'literal-optional-alternative-with-dashes' => [
+            'literal-optional-alternative-with-dashes'       => [
                 '[foo-bar|foo-baz] [--bar=]',
-                ['foo-baz',],
+                ['foo-baz'],
                 [
-                    'foo-bar'     => false,
-                    'foo-baz'     => true,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo-bar'   => false,
+                    'foo-baz'   => true,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
-            'literal-optional-alternative-with-dashes2' => [
+            'literal-optional-alternative-with-dashes2'      => [
                 'foo [foo-bar|foo-baz] [--bar=]',
-                ['foo',],
+                ['foo'],
                 [
-                    'foo'         => null,
-                    'foo-bar'     => false,
-                    'foo-baz'     => false,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo'       => null,
+                    'foo-bar'   => false,
+                    'foo-baz'   => false,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
-            'literal-flag-with-dashes' => [
+            'literal-flag-with-dashes'                       => [
                 'foo --bar-baz',
-                ['foo','--bar-baz'],
+                ['foo', '--bar-baz'],
                 [
-                    'foo'         => null,
-                    'bar-baz'     => true,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo'       => null,
+                    'bar-baz'   => true,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
-            'literal-optional-flag-with-dashes' => [
+            'literal-optional-flag-with-dashes'              => [
                 'foo [--bar-baz]',
-                ['foo','--bar-baz'],
+                ['foo', '--bar-baz'],
                 [
-                    'foo'         => null,
-                    'bar-baz'     => true,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo'       => null,
+                    'bar-baz'   => true,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
-            'literal-optional-flag-with-dashes2' => [
+            'literal-optional-flag-with-dashes2'             => [
                 'foo [--bar-baz]',
                 ['foo'],
                 [
-                    'foo'         => null,
-                    'bar-baz'     => false,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo'       => null,
+                    'bar-baz'   => false,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
-            'literal-optional-flag-alternative-with-dashes' => [
+            'literal-optional-flag-alternative-with-dashes'  => [
                 'foo [--foo-bar|--foo-baz]',
-                ['foo','--foo-baz'],
+                ['foo', '--foo-baz'],
                 [
-                    'foo'         => null,
-                    'foo-bar'     => false,
-                    'foo-baz'     => true,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo'       => null,
+                    'foo-bar'   => false,
+                    'foo-baz'   => true,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
             'literal-optional-flag-alternative-with-dashes2' => [
                 'foo [--foo-bar|--foo-baz]',
                 ['foo'],
                 [
-                    'foo'         => null,
-                    'foo-bar'     => false,
-                    'foo-baz'     => false,
-                    'bar'         => null,
-                    'baz'         => null,
-                    'something'   => null,
-                ]
+                    'foo'       => null,
+                    'foo-bar'   => false,
+                    'foo-baz'   => false,
+                    'bar'       => null,
+                    'baz'       => null,
+                    'something' => null,
+                ],
             ],
-            'value-with-dashes' => [
+            'value-with-dashes'                              => [
                 '<foo-bar-baz> [--bar=]',
-                ['abc',],
+                ['abc'],
                 [
                     'foo-bar-baz' => 'abc',
                     'foo'         => null,
                     'bar'         => null,
                     'baz'         => null,
                     'something'   => null,
-                ]
+                ],
             ],
-
-            'value-optional-with-dashes' => [
+            'value-optional-with-dashes'                     => [
                 '[<foo-bar-baz>] [--bar=]',
                 ['abc'],
                 [
@@ -873,31 +871,31 @@ class DefaultRouteMatcherTest extends TestCase
                     'bar'         => null,
                     'baz'         => null,
                     'something'   => null,
-                ]
+                ],
             ],
-            'value-optional-with-dashes2' => [
+            'value-optional-with-dashes2'                    => [
                 '[<foo-bar-baz>] [--bar=]',
-                ['--bar','abc'],
+                ['--bar', 'abc'],
                 [
                     'foo-bar-baz' => null,
                     'foo'         => null,
                     'bar'         => 'abc',
                     'baz'         => null,
                     'something'   => null,
-                ]
+                ],
             ],
-            'value-optional-with-mixed-case' => [
+            'value-optional-with-mixed-case'                 => [
                 '[<mixedCaseParam>] [--bar=]',
-                ['aBc', '--bar','abc'],
+                ['aBc', '--bar', 'abc'],
                 [
                     'mixedCaseParam' => 'aBc',
                     'foo'            => null,
                     'bar'            => 'abc',
                     'baz'            => null,
                     'something'      => null,
-                ]
+                ],
             ],
-            'value-optional-with-upper-case' => [
+            'value-optional-with-upper-case'                 => [
                 '[<UPPERCASEPARAM>] [--bar=]',
                 ['aBc', '--bar', 'abc'],
                 [
@@ -906,38 +904,39 @@ class DefaultRouteMatcherTest extends TestCase
                     'bar'            => 'abc',
                     'baz'            => null,
                     'something'      => null,
-                ]
+                ],
             ],
             /**
-             * @bug Laminas-5671
              * @link https://github.com/zendframework/zf2/issues/5671
+             *
+             * @bug Laminas-5671
              */
-            'mandatory-literal-camel-case' => [
+            'mandatory-literal-camel-case'                      => [
                 'FooBar',
                 ['FooBar'],
                 ['FooBar' => null],
             ],
-            'mandatory-literal-camel-case-no-match' => [
+            'mandatory-literal-camel-case-no-match'             => [
                 'FooBar',
                 ['foobar'],
                 null,
             ],
-            'optional-literal-camel-case' => [
+            'optional-literal-camel-case'                       => [
                 '[FooBar]',
                 ['FooBar'],
                 ['FooBar' => true],
             ],
-            'optional-literal-camel-case-no-match' => [
+            'optional-literal-camel-case-no-match'              => [
                 '[FooBar]',
                 ['foobar'],
                 null,
             ],
-            'optional-literal-alternative-camel-case' => [
+            'optional-literal-alternative-camel-case'           => [
                 '[ FooBar | FoozBar ]',
                 ['FooBar'],
                 ['FooBar' => true],
             ],
-            'mandatory-literal-alternative-camel-case' => [
+            'mandatory-literal-alternative-camel-case'          => [
                 '( FooBar | FoozBar )',
                 ['FooBar'],
                 ['FooBar' => true],
@@ -947,12 +946,12 @@ class DefaultRouteMatcherTest extends TestCase
                 ['baz'],
                 null,
             ],
-            'catchall' => [
+            'catchall'                                          => [
                 'catchall [...params]',
                 ['catchall', 'foo', 'bar', '--xyzzy'],
                 ['params' => ['foo', 'bar', '--xyzzy']],
             ],
-            'catchall-with-flag' => [
+            'catchall-with-flag'                                => [
                 'catchall [--flag] [...params]',
                 ['catchall', 'foo', '--flag', 'bar', '--xyzzy'],
                 ['params' => ['foo', 'bar', '--xyzzy'], 'flag' => true],
@@ -966,16 +965,15 @@ class DefaultRouteMatcherTest extends TestCase
      * @param        array          $arguments
      * @param        array|null     $params
      */
-    public function testMatching($routeDefinition, array $arguments = [], array $params = null)
+    public function testMatching($routeDefinition, array $arguments = [], ?array $params = null)
     {
         $route = new DefaultRouteMatcher($routeDefinition);
         $match = $route->match($arguments);
 
-
         if ($params === null) {
             $this->assertNull($match, "The route must not match");
         } else {
-            $this->assertInternalType('array', $match);
+            $this->assertIsArray($match);
 
             foreach ($params as $key => $value) {
                 if ($value === null) {
@@ -987,7 +985,7 @@ class DefaultRouteMatcherTest extends TestCase
                 }
                 $this->assertEquals(
                     $value,
-                    isset($match[$key]) ? $match[$key] : null,
+                    $match[$key] ?? null,
                     $msg
                 );
             }
@@ -997,27 +995,27 @@ class DefaultRouteMatcherTest extends TestCase
     public function testCannotMatchWithEmptyMandatoryParam()
     {
         $arguments = ['--foo='];
-        $route = new DefaultRouteMatcher('--foo=');
-        $match = $route->match($arguments);
+        $route     = new DefaultRouteMatcher('--foo=');
+        $match     = $route->match($arguments);
         $this->assertEquals(null, $match);
     }
 
-    public static function routeDefaultsProvider()
+    public static function routeDefaultsProvider(): array
     {
         return [
-            'required-literals-no-defaults' => [
+            'required-literals-no-defaults'   => [
                 'create controller',
                 [],
                 ['create', 'controller'],
                 ['create' => null, 'controller' => null],
             ],
-            'required-literals-defaults' => [
+            'required-literals-defaults'      => [
                 'create controller',
                 ['controller' => 'value'],
                 ['create', 'controller'],
                 ['create' => null, 'controller' => 'value'],
             ],
-            'value-param-no-defaults' => [
+            'value-param-no-defaults'         => [
                 'create controller <controller>',
                 [],
                 ['create', 'controller', 'foo'],
@@ -1029,7 +1027,7 @@ class DefaultRouteMatcherTest extends TestCase
                 ['create', 'controller', 'foo'],
                 ['create' => null, 'controller' => 'foo'],
             ],
-            'optional-value-param-defaults' => [
+            'optional-value-param-defaults'   => [
                 'create controller [<controller>]',
                 ['controller' => 'defaultValue'],
                 ['create', 'controller'],
@@ -1041,31 +1039,31 @@ class DefaultRouteMatcherTest extends TestCase
                 ['foo'],
                 ['foo' => true, 'bar' => false],
             ],
-            'alternative-literal-present' => [
+            'alternative-literal-present'     => [
                 '(foo | bar)',
                 ['bar' => 'something'],
                 ['bar'],
                 ['foo' => false, 'bar' => 'something'],
             ],
-            'alternative-flag-non-present' => [
+            'alternative-flag-non-present'    => [
                 '(--foo | --bar)',
                 ['bar' => 'something'],
                 ['--foo'],
                 ['foo' => true, 'bar' => false],
             ],
-            'alternative-flag-present' => [
+            'alternative-flag-present'        => [
                 '(--foo | --bar)',
                 ['bar' => 'something'],
                 ['--bar'],
                 ['foo' => false, 'bar' => 'something'],
             ],
-            'optional-literal-non-present' => [
+            'optional-literal-non-present'    => [
                 'foo [bar]',
                 ['bar' => 'something'],
                 ['foo'],
                 ['foo' => null, 'bar' => false],
             ],
-            'optional-literal-present' => [
+            'optional-literal-present'        => [
                 'foo [bar]',
                 ['bar' => 'something'],
                 ['foo', 'bar'],
@@ -1085,7 +1083,7 @@ class DefaultRouteMatcherTest extends TestCase
         $routeDefinition,
         array $defaults = [],
         array $arguments = [],
-        array $params = null
+        ?array $params = null
     ) {
         $route = new DefaultRouteMatcher($routeDefinition, [], $defaults);
         $match = $route->match($arguments);
@@ -1093,29 +1091,29 @@ class DefaultRouteMatcherTest extends TestCase
         if ($params === null) {
             $this->assertNull($match, "The route must not match");
         } else {
-            $this->assertInternalType('array', $match);
+            $this->assertIsArray($match);
 
             foreach ($params as $key => $value) {
                 $this->assertSame(
                     $value,
-                    isset($match[$key]) ? $match[$key] : null,
+                    $match[$key] ?? null,
                     $value === null ? "Param $key is not present" : "Param $key is present and is equal to '$value'"
                 );
             }
         }
     }
 
-    public static function routeConstraintsProvider()
+    public static function routeConstraintsProvider(): array
     {
         return [
-            'simple-constraints' => [
+            'simple-constraints'            => [
                 '<numeric> <alpha>',
                 [
                     'numeric' => '/^[0-9]+$/',
                     'alpha'   => '/^[a-zA-Z]+$/',
                 ],
                 ['1234', 'test'],
-                true
+                true,
             ],
             'constraints-on-optional-param' => [
                 '<alpha> [<numeric>]',
@@ -1124,48 +1122,48 @@ class DefaultRouteMatcherTest extends TestCase
                     'alpha'   => '/^[a-zA-Z]+$/',
                 ],
                 ['test', '1234'],
-                true
+                true,
             ],
-            'optional-empty-param' => [
+            'optional-empty-param'          => [
                 '<alpha> [<numeric>]',
                 [
                     'numeric' => '/^[0-9]+$/',
                     'alpha'   => '/^[a-zA-Z]+$/',
                 ],
                 ['test'],
-                true
+                true,
             ],
-            'named-param' => [
+            'named-param'                   => [
                 '--foo=',
                 [
-                    'foo' => '/^bar$/'
+                    'foo' => '/^bar$/',
                 ],
                 ['--foo=bar'],
                 true,
             ],
-            'failing-param' => [
+            'failing-param'                 => [
                 '<good1> <good2> <bad>',
                 [
-                    'good1'   => '/^[a-zA-Z]+$/',
-                    'good2'   => '/^[a-zA-Z]+$/',
+                    'good1' => '/^[a-zA-Z]+$/',
+                    'good2' => '/^[a-zA-Z]+$/',
                     'bad'   => '/^[a-zA-Z]+$/',
                 ],
                 ['foo', 'bar', 'foo123bar'],
-                false
+                false,
             ],
-            'failing-optional-param' => [
+            'failing-optional-param'        => [
                 '<good> [<bad>]',
                 [
-                    'good2'   => '/^(foo|bar)$/',
+                    'good2' => '/^(foo|bar)$/',
                     'bad'   => '/^(foo|bar)$/',
                 ],
                 ['foo', 'baz'],
-                false
+                false,
             ],
-            'failing-named-param' => [
+            'failing-named-param'           => [
                 '--foo=',
                 [
-                    'foo' => '/^bar$/'
+                    'foo' => '/^bar$/',
                 ],
                 ['--foo=baz'],
                 false,
@@ -1192,65 +1190,65 @@ class DefaultRouteMatcherTest extends TestCase
         if ($shouldMatch === false) {
             $this->assertNull($match, "The route must not match");
         } else {
-            $this->assertInternalType('array', $match);
+            $this->assertIsArray($match);
         }
     }
 
-    public static function routeAliasesProvider()
+    public static function routeAliasesProvider(): array
     {
         return [
-            'simple-alias' => [
+            'simple-alias'        => [
                 '--user=',
                 [
-                    'username' => 'user'
+                    'username' => 'user',
                 ],
                 ['--username=JohnDoe'],
                 [
-                    'user' => 'JohnDoe'
-                ]
+                    'user' => 'JohnDoe',
+                ],
             ],
-            'multiple-aliases' => [
+            'multiple-aliases'    => [
                 '--name= --email=',
                 [
-                    'username' => 'name',
-                    'useremail' => 'email'
+                    'username'  => 'name',
+                    'useremail' => 'email',
                 ],
                 ['--username=JohnDoe', '--useremail=johndoe@domain.com'],
                 [
-                    'name' => 'JohnDoe',
+                    'name'  => 'JohnDoe',
                     'email' => 'johndoe@domain.com',
-                ]
+                ],
             ],
-            'flags' => [
+            'flags'               => [
                 'foo --bar',
                 [
-                    'baz' => 'bar'
+                    'baz' => 'bar',
                 ],
                 ['foo', '--baz'],
                 [
-                    'bar' => true
-                ]
+                    'bar' => true,
+                ],
             ],
-            'with-alternatives' => [
+            'with-alternatives'   => [
                 'do-something (--remove|--update)',
                 [
-                    'delete' => 'remove'
+                    'delete' => 'remove',
                 ],
                 ['do-something', '--delete'],
                 [
                     'remove' => true,
-                ]
+                ],
             ],
             'with-alternatives-2' => [
                 'do-something (--update|--remove)',
                 [
-                    'delete' => 'remove'
+                    'delete' => 'remove',
                 ],
                 ['do-something', '--delete'],
                 [
                     'remove' => true,
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -1265,7 +1263,7 @@ class DefaultRouteMatcherTest extends TestCase
         $routeDefinition,
         array $aliases = [],
         array $arguments = [],
-        array $params = null
+        ?array $params = null
     ) {
         $route = new DefaultRouteMatcher($routeDefinition, [], [], $aliases);
         $match = $route->match($arguments);
@@ -1273,19 +1271,19 @@ class DefaultRouteMatcherTest extends TestCase
         if ($params === null) {
             $this->assertNull($match, "The route must not match");
         } else {
-            $this->assertInternalType('array', $match);
+            $this->assertIsArray($match);
 
             foreach ($params as $key => $value) {
                 $this->assertEquals(
                     $value,
-                    isset($match[$key]) ? $match[$key] : null,
+                    $match[$key] ?? null,
                     $value === null ? "Param $key is not present" : "Param $key is present and is equal to $value"
                 );
             }
         }
     }
 
-    public function routeValidatorsProvider()
+    public function routeValidatorsProvider(): array
     {
         if (! class_exists(Digits::class)) {
             return [
@@ -1299,34 +1297,33 @@ class DefaultRouteMatcherTest extends TestCase
         }
 
         return [
-            'validators-valid' => [
+            'validators-valid'    => [
                 '<string> <number>',
                 [
                     'string' => new StringLength(['min' => 5, 'max' => 12]),
-                    'number' => new Digits()
+                    'number' => new Digits(),
                 ],
                 ['foobar', '12345'],
-                true
+                true,
             ],
-            'validators-invalid' => [
+            'validators-invalid'  => [
                 '<string> <number>',
                 [
                     'string' => new StringLength(['min' => 5, 'max' => 12]),
-                    'number' => new Digits()
+                    'number' => new Digits(),
                 ],
                 ['foo', '12345'],
-                false
+                false,
             ],
             'validators-invalid2' => [
                 '<number> <string>',
                 [
                     'string' => new StringLength(['min' => 5, 'max' => 12]),
-                    'number' => new Digits()
+                    'number' => new Digits(),
                 ],
                 ['foozbar', 'not_digits'],
-                false
+                false,
             ],
-
         ];
     }
 
@@ -1340,15 +1337,15 @@ class DefaultRouteMatcherTest extends TestCase
     public function testParamsCanBeValidated($routeDefinition, $validators, $arguments, $shouldMatch)
     {
         $matcher = new DefaultRouteMatcher($routeDefinition, [], [], [], null, $validators);
-        $match = $matcher->match($arguments);
+        $match   = $matcher->match($arguments);
         if ($shouldMatch === false) {
             $this->assertNull($match, "The route must not match");
         } else {
-            $this->assertInternalType('array', $match);
+            $this->assertIsArray($match);
         }
     }
 
-    public function routeFiltersProvider()
+    public function routeFiltersProvider(): array
     {
         $genericFilter = $this->getMockBuilder(FilterInterface::class)
             ->setMethods(['filter'])
@@ -1357,37 +1354,37 @@ class DefaultRouteMatcherTest extends TestCase
             ->with('foobar')->will($this->returnValue('foobaz'));
 
         return [
-            'filters-generic' => [
+            'filters-generic'  => [
                 '<param>',
                 [
-                    'param' => $genericFilter
+                    'param' => $genericFilter,
                 ],
                 ['foobar'],
                 [
-                    'param' => 'foobaz'
-                ]
+                    'param' => 'foobaz',
+                ],
             ],
-            'filters-single' => [
+            'filters-single'   => [
                 '<number>',
                 [
-                    'number' => new \Laminas\Filter\ToInt()
+                    'number' => new ToInt(),
                 ],
                 ['123four'],
                 [
-                    'number' => 123
-                ]
+                    'number' => 123,
+                ],
             ],
             'filters-multiple' => [
                 '<number> <strtolower>',
                 [
-                    'number' => new \Laminas\Filter\ToInt(),
-                    'strtolower' => new \Laminas\Filter\StringToLower(),
+                    'number'     => new ToInt(),
+                    'strtolower' => new StringToLower(),
                 ],
                 ['nan', 'FOOBAR'],
                 [
-                    'number' => 0,
-                    'strtolower' => 'foobar'
-                ]
+                    'number'     => 0,
+                    'strtolower' => 'foobar',
+                ],
             ],
         ];
     }
@@ -1402,18 +1399,18 @@ class DefaultRouteMatcherTest extends TestCase
     public function testParamsCanBeFiltered($routeDefinition, $filters, $arguments, $params)
     {
         $matcher = new DefaultRouteMatcher($routeDefinition, [], [], [], $filters);
-        $match = $matcher->match($arguments);
+        $match   = $matcher->match($arguments);
 
         if (null === $match) {
             $this->fail("Route '$routeDefinition' must match.'");
         }
 
-        $this->assertInternalType('array', $match);
+        $this->assertIsArray($match);
 
         foreach ($params as $key => $value) {
             $this->assertEquals(
                 $value,
-                isset($match[$key]) ? $match[$key] : null,
+                $match[$key] ?? null,
                 $value === null ? "Param $key is not present" : "Param $key is present and is equal to $value"
             );
         }
@@ -1421,17 +1418,17 @@ class DefaultRouteMatcherTest extends TestCase
 
     public function testConstructorDoesNotAcceptInvalidFilters()
     {
-        $this->expectException('Laminas\Console\Exception\InvalidArgumentException');
+        $this->expectException(InvalidArgumentException::class);
         new DefaultRouteMatcher('<foo>', [], [], [], [
-            new \stdClass()
+            new stdClass(),
         ]);
     }
 
     public function testConstructorDoesNotAcceptInvalidValidators()
     {
-        $this->expectException('Laminas\Console\Exception\InvalidArgumentException');
+        $this->expectException(InvalidArgumentException::class);
         new DefaultRouteMatcher('<foo>', [], [], [], [], [
-            new \stdClass()
+            new stdClass(),
         ]);
     }
 
@@ -1439,7 +1436,7 @@ class DefaultRouteMatcherTest extends TestCase
     {
         $badRoutes = [
             '[...catchall1] [...catchall2]' => 'Cannot define more than one catchAll parameter',
-            '[...catchall] [positional]' => 'Positional parameters must come before catchAlls',
+            '[...catchall] [positional]'    => 'Positional parameters must come before catchAlls',
         ];
         foreach ($badRoutes as $route => $msg) {
             try {

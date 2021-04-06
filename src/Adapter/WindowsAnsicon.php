@@ -12,6 +12,27 @@ use Laminas\Console\Charset;
 use Laminas\Console\Charset\CharsetInterface;
 use Laminas\Console\Exception;
 
+use function array_map;
+use function array_unique;
+use function chr;
+use function count;
+use function exec;
+use function fclose;
+use function fgetc;
+use function fopen;
+use function getenv;
+use function implode;
+use function in_array;
+use function ord;
+use function preg_match;
+use function str_split;
+use function stristr;
+use function strlen;
+use function strstr;
+use function strtr;
+use function substr;
+use function trim;
+
 /**
  * MS Windows with ANSICON console adapter
  *
@@ -33,7 +54,7 @@ class WindowsAnsicon extends Posix
      *
      * @var null|bool
      */
-    protected static $hasMBString;
+    protected static $hasMbString;
 
     /**
      * Results of mode command
@@ -113,7 +134,7 @@ class WindowsAnsicon extends Posix
         }
 
         if (preg_match('/Code page\:\s+(\d+)/', $this->modeResult, $matches)) {
-            return (int) $matches[1] == 65001;
+            return (int) $matches[1] === 65001;
         }
 
         return false;
@@ -153,8 +174,6 @@ class WindowsAnsicon extends Posix
 
     /**
      * Set Console charset to use.
-     *
-     * @param CharsetInterface $charset
      */
     public function setCharset(CharsetInterface $charset)
     {
@@ -201,7 +220,7 @@ class WindowsAnsicon extends Posix
             // range.
             do {
                 exec('choice /n /cs /c:' . $mask, $output, $return);
-                if ($return == 255 || $return < 1 || $return > strlen($mask)) {
+                if ($return === 255 || $return < 1 || $return > strlen($mask)) {
                     throw new Exception\RuntimeException(
                         '"choice" command failed to run. Are you using Windows XP or newer?'
                     );
@@ -259,7 +278,7 @@ class WindowsAnsicon extends Posix
             $result = $return = null;
             exec(
                 'powershell -NonInteractive -NoProfile -NoLogo -OutputFormat Text -Command "'
-                . '[int[]] $mask = '.implode(',', $asciiMask).';'
+                . '[int[]] $mask = ' . implode(',', $asciiMask) . ';'
                 . 'do {'
                 . '$key = $Host.UI.RawUI.ReadKey(\'NoEcho,IncludeKeyDown\').VirtualKeyCode;'
                 . '} while ( !($mask -contains $key) );'
@@ -274,7 +293,7 @@ class WindowsAnsicon extends Posix
             if (! $return && $char && ($mask === null || in_array($char, $asciiMask))) {
                 // We have obtained an ASCII code, check if it is a carriage
                 // return and normalize it as needed
-                if ($char == 13) {
+                if ($char === 13) {
                     $char = 10;
                 }
 

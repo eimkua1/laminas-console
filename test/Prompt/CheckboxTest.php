@@ -12,24 +12,30 @@ use Laminas\Console\Prompt\Checkbox;
 use LaminasTest\Console\TestAssets\ConsoleAdapter;
 use PHPUnit\Framework\TestCase;
 
+use function fclose;
+use function fopen;
+use function fwrite;
+use function ob_get_clean;
+use function ob_start;
+use function rewind;
+use function substr_count;
+
 /**
  * @group      Laminas_Console
  * @covers \Laminas\Console\Prompt\Checkbox
  */
 class CheckboxTest extends TestCase
 {
-    /**
-     * @var ConsoleAdapter
-     */
+    /** @var ConsoleAdapter */
     protected $adapter;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->adapter = new ConsoleAdapter(false);
+        $this->adapter         = new ConsoleAdapter(false);
         $this->adapter->stream = fopen('php://memory', 'w+');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         fclose($this->adapter->stream);
     }
@@ -44,7 +50,7 @@ class CheckboxTest extends TestCase
         $checkbox->setConsole($this->adapter);
         ob_start();
         $response = $checkbox->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertSame(1, substr_count($text, '0) [X] foo'));
         $this->assertSame(1, substr_count($text, '0) [ ] foo'));
         $this->assertSame(2, substr_count($text, '1) [ ] bar'));
@@ -62,7 +68,7 @@ class CheckboxTest extends TestCase
         $checkbox->setConsole($this->adapter);
         ob_start();
         $response = $checkbox->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertSame(1, substr_count($text, '0) [X] foo'));
         $this->assertSame(2, substr_count($text, '0) [ ] foo'));
         $this->assertSame(3, substr_count($text, '1) [ ] bar'));
@@ -80,7 +86,7 @@ class CheckboxTest extends TestCase
         $checkbox->setConsole($this->adapter);
         ob_start();
         $response = $checkbox->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertSame(2, substr_count($text, '0) [X] foo'));
         $this->assertSame(1, substr_count($text, '1) [X] bar'));
         $this->assertSame(1, substr_count($text, '0) [ ] foo'));
@@ -98,7 +104,7 @@ class CheckboxTest extends TestCase
         $checkbox->setConsole($this->adapter);
         ob_start();
         $response = $checkbox->show();
-        $text = ob_get_clean();
+        $text     = ob_get_clean();
         $this->assertSame(1, substr_count($text, '2) [X] foo'));
         $this->assertSame(1, substr_count($text, '2) [ ] foo'));
         $this->assertSame(2, substr_count($text, '6) [ ] bar'));

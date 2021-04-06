@@ -10,24 +10,24 @@ namespace Laminas\Console;
 
 interface ColorInterface
 {
-    const NORMAL = 0;
-    const RESET = 0;
+    public const NORMAL = 0;
+    public const RESET  = 0;
 
-    const BLACK = 1;
-    const RED = 2;
-    const GREEN = 3;
-    const YELLOW = 4;
-    const BLUE = 5;
-    const MAGENTA = 6;
-    const CYAN = 7;
-    const WHITE = 8;
+    public const BLACK   = 1;
+    public const RED     = 2;
+    public const GREEN   = 3;
+    public const YELLOW  = 4;
+    public const BLUE    = 5;
+    public const MAGENTA = 6;
+    public const CYAN    = 7;
+    public const WHITE   = 8;
 
-    const GRAY = 9;
-    const LIGHT_RED = 10;
-    const LIGHT_GREEN = 11;
-    const LIGHT_YELLOW = 12;
-    const LIGHT_BLUE = 13;
-    const LIGHT_MAGENTA = 14;
-    const LIGHT_CYAN = 15;
-    const LIGHT_WHITE = 16;
+    public const GRAY          = 9;
+    public const LIGHT_RED     = 10;
+    public const LIGHT_GREEN   = 11;
+    public const LIGHT_YELLOW  = 12;
+    public const LIGHT_BLUE    = 13;
+    public const LIGHT_MAGENTA = 14;
+    public const LIGHT_CYAN    = 15;
+    public const LIGHT_WHITE   = 16;
 }

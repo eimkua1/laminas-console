@@ -12,12 +12,14 @@ use Laminas\Console\Color\Xterm256;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
+use function sprintf;
+
 /**
  * @group      Laminas_Console
  */
 class Xterm256Test extends TestCase
 {
-    public function invalidHexCodes()
+    public function invalidHexCodes(): array
     {
         return [
             'too-long'                       => ['FFFFFF0'],
@@ -32,7 +34,7 @@ class Xterm256Test extends TestCase
     /**
      * @dataProvider invalidHexCodes
      */
-    public function testWrongHexCodeInputs($hex)
+    public function testWrongHexCodeInputs(?string $hex): void
     {
         $color = Xterm256::calculate($hex);
         $r     = new ReflectionClass($color);
@@ -40,7 +42,7 @@ class Xterm256Test extends TestCase
         $this->assertNull($code);
     }
 
-    public function approximateHexCodes()
+    public function approximateHexCodes(): array
     {
         return [
             'sixteen'         => ['000100', 16],
@@ -51,7 +53,7 @@ class Xterm256Test extends TestCase
     /**
      * @dataProvider approximateHexCodes
      */
-    public function testApproximateHexCodeInputs($hex, $gcode)
+    public function testApproximateHexCodeInputs(string $hex, int $gcode): void
     {
         $color = Xterm256::calculate($hex);
         $r     = new ReflectionClass($color);
@@ -59,7 +61,7 @@ class Xterm256Test extends TestCase
         $this->assertEquals($gcode, $r->getStaticPropertyValue('color'));
     }
 
-    public function exactHexCodes()
+    public function exactHexCodes(): array
     {
         return [
             '000000' => ['000000', 16],
@@ -308,7 +310,7 @@ class Xterm256Test extends TestCase
     /**
      * @dataProvider exactHexCodes
      */
-    public function testExactHexCodeInputs($hex, $gcode)
+    public function testExactHexCodeInputs(string $hex, int $gcode): void
     {
         $color = Xterm256::calculate($hex);
         $r     = new ReflectionClass($color);

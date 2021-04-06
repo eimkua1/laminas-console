@@ -12,6 +12,24 @@ use Laminas\Console\Charset;
 use Laminas\Console\Exception;
 use Laminas\Stdlib\StringUtils;
 
+use function array_slice;
+use function count;
+use function explode;
+use function fclose;
+use function fopen;
+use function fread;
+use function is_numeric;
+use function rtrim;
+use function str_repeat;
+use function stream_get_line;
+use function strlen;
+use function strstr;
+use function utf8_decode;
+use function utf8_encode;
+use function wordwrap;
+
+use const PHP_EOL;
+
 /**
  * Common console adapter codebase
  */
@@ -22,11 +40,9 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @var null|bool
      */
-    protected static $hasMBString;
+    protected static $hasMbString;
 
-    /**
-     * @var Charset\CharsetInterface
-     */
+    /** @var Charset\CharsetInterface */
     protected $charset;
 
     /**
@@ -69,9 +85,9 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param null|int $color
      * @param null|int $bgColor
      */
-    public function writeText($text, $color = null, $bgColor = null)
+    public function writeText($text, $color = null, $bgColor = null): void
     {
-        return $this->write($text, $color, $bgColor);
+        $this->write($text, $color, $bgColor);
     }
 
     /**
@@ -88,7 +104,6 @@ abstract class AbstractAdapter implements AdapterInterface
 
     /**
      * Write a piece of text at the coordinates of $x and $y
-     *
      *
      * @param string   $text    Text to write
      * @param int      $x       Console X coordinate (column)
@@ -117,7 +132,7 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param int      $bgColor      (optional) Background color
      * @param null|int $fillColor    (optional) Foreground color of box fill
      * @param null|int $fillBgColor  (optional) Background color of box fill
-     * @throws Exception\BadMethodCallException if coordinates are invalid
+     * @throws Exception\BadMethodCallException If coordinates are invalid.
      */
     public function writeBox(
         $x1,
@@ -147,7 +162,8 @@ abstract class AbstractAdapter implements AdapterInterface
         }
 
         // Validate coordinates
-        if ($x1 < 0
+        if (
+            $x1 < 0
             || $y1 < 0
             || $x2 < $x1
             || $y2 < $y1
@@ -190,8 +206,10 @@ abstract class AbstractAdapter implements AdapterInterface
         }
 
         // Draw vertical lines and fill
-        if (is_numeric($fillStyle)
-            && $fillStyle !== static::FILL_NONE) {
+        if (
+            is_numeric($fillStyle)
+            && $fillStyle !== static::FILL_NONE
+        ) {
             switch ($fillStyle) {
                 case static::FILL_SHADE_LIGHT:
                     $fillChar = $charset::SHADE_LIGHT;
@@ -329,7 +347,7 @@ abstract class AbstractAdapter implements AdapterInterface
         foreach ($lines as $line) {
             $this->setPos($x, $curY);
             $this->write($line, $color, $bgColor);
-            $curY++;//next line
+            $curY++; //next line
         }
     }
 
@@ -450,8 +468,6 @@ abstract class AbstractAdapter implements AdapterInterface
 
     /**
      * Set Console charset to use.
-     *
-     * @param Charset\CharsetInterface $charset
      */
     public function setCharset(Charset\CharsetInterface $charset)
     {
@@ -477,7 +493,7 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function getDefaultCharset()
     {
-        return new Charset\Utf8;
+        return new Charset\Utf8();
     }
 
     /**
@@ -499,9 +515,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * Clear console screen
      */
-    public function clearScreen()
+    public function clearScreen(): void
     {
-        return $this->clear();
+        $this->clear();
     }
 
     /**

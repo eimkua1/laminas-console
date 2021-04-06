@@ -11,6 +11,30 @@ namespace Laminas\Console\Adapter;
 use Laminas\Console\Charset;
 use Laminas\Console\Exception;
 
+use function array_map;
+use function array_unique;
+use function chr;
+use function count;
+use function exec;
+use function fclose;
+use function fgetc;
+use function fopen;
+use function fread;
+use function implode;
+use function in_array;
+use function ord;
+use function preg_match;
+use function rtrim;
+use function shell_exec;
+use function str_repeat;
+use function str_split;
+use function stristr;
+use function strlen;
+use function strstr;
+use function strtr;
+use function substr;
+use function trim;
+
 class Windows extends Virtual
 {
     /**
@@ -18,7 +42,7 @@ class Windows extends Virtual
      *
      * @var null|bool
      */
-    protected static $hasMBString;
+    protected static $hasMbString;
 
     /**
      * Results of probing system capabilities
@@ -138,7 +162,7 @@ class Windows extends Virtual
         }
 
         if (preg_match('/Code page\:\s+(\d+)/', $this->modeResult, $matches)) {
-            return (int) $matches[1] == 65001;
+            return (int) $matches[1] === 65001;
         }
 
         return false;
@@ -162,8 +186,6 @@ class Windows extends Virtual
 
     /**
      * Set Console charset to use.
-     *
-     * @param Charset\CharsetInterface $charset
      */
     public function setCharset(Charset\CharsetInterface $charset)
     {
@@ -189,7 +211,7 @@ class Windows extends Virtual
      */
     public function getDefaultCharset()
     {
-        return new Charset\AsciiExtended;
+        return new Charset\AsciiExtended();
     }
 
     /**
@@ -242,7 +264,7 @@ class Windows extends Virtual
             // range.
             do {
                 exec('choice /n /cs /c:' . $mask, $output, $return);
-                if ($return == 255 || $return < 1 || $return > strlen($mask)) {
+                if ($return === 255 || $return < 1 || $return > strlen($mask)) {
                     throw new Exception\RuntimeException(
                         '"choice" command failed to run. Are you using Windows XP or newer?'
                     );
@@ -315,7 +337,7 @@ class Windows extends Virtual
 
             if (! $return && $char && ($mask === null || in_array($char, $asciiMask))) {
                 // Normalize CR to LF
-                if ($char == 13) {
+                if ($char === 13) {
                     $char = 10;
                 }
 
